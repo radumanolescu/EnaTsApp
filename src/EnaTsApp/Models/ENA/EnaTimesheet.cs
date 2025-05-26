@@ -189,7 +189,7 @@ namespace Ena.Timesheet.Ena
             return enaTsEntries.Sum(e => e.Hours ?? 0.0f);
         }
 
-        public Dictionary<string, Dictionary<int?, double>> TotalHoursByClientTaskDay()
+        public Dictionary<string, Dictionary<int, double>> TotalHoursByClientTaskDay()
         {
             return enaTsEntries
                 .GroupBy(e => e.ProjectActivity())
@@ -197,7 +197,7 @@ namespace Ena.Timesheet.Ena
                     g => g.Key,
                     g => g.GroupBy(e => e.Day)
                           .ToDictionary(
-                              gg => gg.Key,
+                              gg => gg.Key ?? 0,
                               gg => gg.Sum(e => e.Hours ?? 0.0)
                           )
                 );

@@ -18,7 +18,7 @@ namespace Com.Ena.Timesheet.Phd
         public string Client { get; set; }
         public string Task { get; set; }
 
-        private Dictionary<int, double> effort = new Dictionary<int, double>();
+        private Dictionary<int?, double> effort = new Dictionary<int?, double>();
 
         public PhdTemplateEntry(int rowNum, string client, string task)
         {
@@ -30,7 +30,7 @@ namespace Com.Ena.Timesheet.Phd
         public int GetRowNum() => RowNum;
         public string GetClient() => Client;
         public string GetTask() => Task;
-        public Dictionary<int, double> GetEffort() => Effort;
+        public Dictionary<int?, double> GetEffort() => Effort;
 
         public void SetClient(string client)
         {
@@ -42,7 +42,7 @@ namespace Com.Ena.Timesheet.Phd
             Task = task;
         }
 
-        public void SetEffort(Dictionary<int, double> effort)
+        public void SetEffort(Dictionary<int?, double> effort)
         {
             Effort = effort;
         }
@@ -63,10 +63,10 @@ namespace Com.Ena.Timesheet.Phd
             return JsonConvert.SerializeObject(this);
         }
 
-        public Dictionary<int, double> Effort
+        public Dictionary<int?, double> Effort
         {
             get => effort;
-            set => effort = value ?? new Dictionary<int, double>();
+            set => effort = value ?? new Dictionary<int?, double>();
         }
 
         public double TotalHours()
@@ -127,18 +127,18 @@ namespace Com.Ena.Timesheet.Phd
             return s.Replace("\"", "");
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            if (obj is PhdTemplateEntry other)
+            if (obj is PhdTemplateEntry that)
             {
-                return string.Equals(Client, other.Client) && string.Equals(Task, other.Task);
+                return Client.Equals(that.Client) && Task.Equals(that.Task) && Effort.Equals(that.Effort);
             }
             return false;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Client, Task);
+            return HashCode.Combine(Client, Task, Effort);
         }
     }
 }

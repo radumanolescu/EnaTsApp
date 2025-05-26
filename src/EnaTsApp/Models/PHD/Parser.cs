@@ -51,7 +51,7 @@ namespace Com.Ena.Timesheet.Phd
                     string task = row.GetCell(1)?.ToString()?.Trim() ?? "";
 
                     // Read the effort per day from the row
-                    var effort = new Dictionary<int, double>();
+                    var effort = new Dictionary<int?, double>();
                     // Skip the first row (header)
                     if (rowNum > 0)
                     {

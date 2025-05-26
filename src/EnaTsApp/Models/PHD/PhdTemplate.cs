@@ -130,13 +130,10 @@ namespace Com.Ena.Timesheet.Phd
                 {
                     if (enaEffort.TryGetValue(entry.ClientHashTask(), out var enaEntry))
                     {
-                        var effort = new Dictionary<int, double>();
+                        var effort = new Dictionary<int?, double>();
                         foreach (var dayEffort in enaEntry)
                         {
-                            if (dayEffort.Key.HasValue)
-                            {
-                                effort[dayEffort.Key.Value] = dayEffort.Value;
-                            }
+                            effort[dayEffort.Key] = dayEffort.Value;
                         }
                         entry.SetEffort(effort);
                     }
@@ -146,13 +143,10 @@ namespace Com.Ena.Timesheet.Phd
             {
                 if (enaEffort.TryGetValue(phdEntry.ClientHashTask(), out var enaEntry))
                 {
-                    var effort = new Dictionary<int, double>();
+                    var effort = new Dictionary<int?, double>();
                     foreach (var dayEffort in enaEntry)
                     {
-                        if (dayEffort.Key.HasValue)
-                        {
-                            effort[dayEffort.Key.Value] = dayEffort.Value;
-                        }
+                        effort[dayEffort.Key] = dayEffort.Value;
                     }
                     phdEntry.SetEffort(effort);
                 }
@@ -204,7 +198,7 @@ namespace Com.Ena.Timesheet.Phd
                     var entry = entries[rowId];
                     foreach (var dayEffort in entry.GetEffort())
                     {
-                        int day = dayEffort.Key;
+                        int day = dayEffort.Key.Value;
                         double effort = dayEffort.Value;
                         ICell cell = row.GetCell(colOffset + day) ?? row.CreateCell(colOffset + day);
                         cell.SetCellValue(effort);

@@ -223,6 +223,10 @@ namespace Ena.Timesheet.Ena
 
         public override bool Equals(object? obj)
         {
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
             if (obj is EnaTsEntry that)
             {
                 return month.Equals(that.month) && day.Equals(that.day) && start.Equals(that.start);
