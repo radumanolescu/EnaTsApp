@@ -23,7 +23,6 @@ namespace EnaTsApp
         private List<List<string>>? templateData;
         private List<List<string>>? timesheetData;
         private PhdTemplate? phdTemplate;
-
         public MainForm()
         {
             InitializeComponent();
@@ -212,6 +211,7 @@ namespace EnaTsApp
                     ShowSuccess($"Template loaded: {templateData.Count} rows");
                     DisplayData(templateData, "Template Data");
                 }
+                phdTemplate = new PhdTemplate(selectedDate.ToString("yyyyMM"), templateData);
             }
             catch (Exception ex)
             {

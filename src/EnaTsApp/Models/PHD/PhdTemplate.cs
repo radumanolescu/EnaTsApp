@@ -14,7 +14,6 @@ namespace Com.Ena.Timesheet.Phd
     {
         private List<PhdTemplateEntry> entries;
         private string yearMonth; // yyyyMM
-        private byte[] xlsxBytes;
 
         public static readonly int colOffset = 1;
 
@@ -24,39 +23,15 @@ namespace Com.Ena.Timesheet.Phd
             this.entries = entries;
         }
 
-        public PhdTemplate(string yearMonth, Stream inputStream)
+        public PhdTemplate(string yearMonth, List<List<string>>? templateData)
         {
             this.yearMonth = yearMonth;
-            using (var ms = new MemoryStream())
-            {
-                inputStream.CopyTo(ms);
-                this.xlsxBytes = ms.ToArray();
-                var parser = new Parser();
-                this.entries = parser.ParseBytes(xlsxBytes);
-            }
-        }
 
-        public PhdTemplate(string yearMonth, byte[] bytes)
-        {
-            this.yearMonth = yearMonth;
-            var parser = new Parser();
-            this.entries = parser.ParseBytes(bytes);
-            this.xlsxBytes = bytes;
-        }
-
-        public PhdTemplate(string yearMonth, FileInfo phdTemplateFile)
-        {
-            this.yearMonth = yearMonth;
-            using (var inputStream = phdTemplateFile.OpenRead())
+            this.entries = new List<PhdTemplateEntry>();
+            for (int i = 0; i < templateData.Count; i++)
             {
-                var parser = new Parser();
-                this.entries = parser.ParseEntries(inputStream);
-                using (var ms = new MemoryStream())
-                {
-                    inputStream.Seek(0, SeekOrigin.Begin);
-                    inputStream.CopyTo(ms);
-                    this.xlsxBytes = ms.ToArray();
-                }
+                var entry = new PhdTemplateEntry(i, templateData[i][0], templateData[i][1]);
+                this.entries.Add(entry);
             }
         }
 
