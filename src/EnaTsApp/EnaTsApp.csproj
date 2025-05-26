@@ -14,11 +14,15 @@
     <PackageReference Include="EPPlus" Version="8.0.5" />
     <PackageReference Include="Microsoft.Windows.Compatibility" Version="5.0.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="NPOI" Version="2.7.3" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="Forms\**\*.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="Models\PHD\**\*.cs" />
+    <Compile Include="Models\ENA\**\*.cs" />
+    <Compile Include="Helpers\**\*.cs" />
   </ItemGroup>
 
 </Project>

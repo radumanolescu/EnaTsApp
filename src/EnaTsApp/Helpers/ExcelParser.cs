@@ -32,12 +32,13 @@ namespace Com.Ena.Timesheet.Xl
 
         public List<string> StringValues(IRow row)
         {
-            var data = new List<string>();
-            foreach (ICell cell in row)
+            var cells = row.Cells;
+            var rowValues = new string[cells.Count];
+            for (int i = 0; i < cells.Count; i++)
             {
-                data.Add(XlUtil.StringValue(cell));
+                rowValues[i] = cells[i].ToString();
             }
-            return data;
+            return rowValues.ToList();
         }
     }
 }

@@ -1,4 +1,8 @@
-namespace Com.Ena.Timesheet.Ena
+using System;
+using System.Text;
+using Ena.Timesheet.Ena;
+
+namespace Ena.Timesheet.Ena
 {
     /// <summary>
     /// An entry that represents a blank line in the table
@@ -7,10 +11,25 @@ namespace Com.Ena.Timesheet.Ena
     {
         public EnaTsWeekBlankEntry(float entryId)
         {
-            this.SetEntryId(entryId);
-            this.SetProjectId("");
-            this.SetActivity("");
-            this.SetDescription("");
+            this.EntryId = entryId;
+            this.ProjectId = "";
+            this.Activity = "";
+            this.Description = "";
+        }
+
+        public void SetProjectId(string projectId)
+        {
+            this.ProjectId = projectId;
+        }
+
+        public void SetActivity(string activity)
+        {
+            this.Activity = activity;
+        }
+
+        public void SetDescription(string description)
+        {
+            this.Description = description;
         }
 
         public override string GetDate()

@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
+using Com.Ena.Timesheet.Phd;
+using Ena.Timesheet.Ena;
 
 namespace Com.Ena.Timesheet.Phd
 {
@@ -101,6 +103,8 @@ namespace Com.Ena.Timesheet.Phd
             this.yearMonth = yearMonth;
         }
 
+        public Dictionary<int, double> TotalHoursByDay { get; set; } = new Dictionary<int, double>();
+
         public double TotalHours()
         {
             return entries.Sum(entry => entry.TotalHours());
@@ -120,11 +124,37 @@ namespace Com.Ena.Timesheet.Phd
         {
             CheckTasks(enaTimesheet);
             var enaEffort = enaTimesheet.TotalHoursByClientTaskDay();
+            foreach (var entry in entries)
+            {
+                if (entry.Day.HasValue)
+                {
+                    if (enaEffort.TryGetValue(entry.ClientHashTask(), out var enaEntry))
+                    {
+                        var effort = new Dictionary<int, double>();
+                        foreach (var dayEffort in enaEntry)
+                        {
+                            if (dayEffort.Key.HasValue)
+                            {
+                                effort[dayEffort.Key.Value] = dayEffort.Value;
+                            }
+                        }
+                        entry.SetEffort(effort);
+                    }
+                }
+            }
             foreach (var phdEntry in entries)
             {
                 if (enaEffort.TryGetValue(phdEntry.ClientHashTask(), out var enaEntry))
                 {
-                    phdEntry.SetEffort(enaEntry);
+                    var effort = new Dictionary<int, double>();
+                    foreach (var dayEffort in enaEntry)
+                    {
+                        if (dayEffort.Key.HasValue)
+                        {
+                            effort[dayEffort.Key.Value] = dayEffort.Value;
+                        }
+                    }
+                    phdEntry.SetEffort(effort);
                 }
             }
             double enaTotalHours = enaTimesheet.TotalHours();

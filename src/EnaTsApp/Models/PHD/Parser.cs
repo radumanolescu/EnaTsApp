@@ -2,8 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
+using Com.Ena.Timesheet.Phd;
+using Ena.Timesheet.Ena;
+using Com.Ena.Timesheet.Xl;
 
 namespace Com.Ena.Timesheet.Phd
 {
@@ -37,13 +42,13 @@ namespace Com.Ena.Timesheet.Phd
             {
                 try
                 {
-                    string client = XlUtil.StringValue(row.GetCell(0)).Trim();
+                    string client = row.GetCell(0)?.ToString()?.Trim() ?? "";
                     if (client == "SUM")
                         break;
 
                     // Empty rows are meaningful and should not be skipped.
                     // They mark the separation between groups of tasks.
-                    string task = XlUtil.StringValue(row.GetCell(1)).Trim();
+                    string task = row.GetCell(1)?.ToString()?.Trim() ?? "";
 
                     // Read the effort per day from the row
                     var effort = new Dictionary<int, double>();
@@ -61,7 +66,7 @@ namespace Com.Ena.Timesheet.Phd
                             }
                         }
                     }
-                    var entry = new PhdTemplateEntry(rowNum, Text.ReplaceNonAscii(client), Text.ReplaceNonAscii(task));
+                    var entry = new PhdTemplateEntry(rowNum, client, task);
                     entry.SetEffort(effort);
                     entries.Add(entry);
                 }
@@ -181,11 +186,11 @@ namespace Com.Ena.Timesheet.Phd
         {
             if (string.IsNullOrEmpty(pC) || pB < 0 || pE < 0)
             {
-                return;
-            }
-            for (int lineNum = pB; lineNum <= pE; lineNum++)
-            {
-                entries[lineNum].SetClient(pC);
+                var header = new string[entries.Count];
+                for (int i = 0; i < entries.Count; i++)
+                {
+                    header[i] = entries[i].ToString();
+                }
             }
         }
     }

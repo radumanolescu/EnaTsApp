@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Ena.Timesheet.Util
+namespace Com.Ena.Timesheet.XlUtil
 {
     public static class Text
     {

@@ -30,7 +30,13 @@ namespace Ena.Timesheet.Ena
             set => activity = value;
         }
 
-        public string Hours
+        public float Hours
+        {
+            get => hours;
+            set => hours = value;
+        }
+
+        public string FormattedHours
         {
             get => hours.ToString("#.##", decimalFormat);
         }
@@ -40,7 +46,7 @@ namespace Ena.Timesheet.Ena
             this.hours = hours;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is EnaTsProjectEntry that)
             {
@@ -61,8 +67,9 @@ namespace Ena.Timesheet.Ena
             return projectId + "#" + activity;
         }
 
-        public int CompareTo(EnaTsProjectEntry that)
+        public int CompareTo(EnaTsProjectEntry? that)
         {
+            if (that == null) throw new ArgumentNullException(nameof(that));
             return this.ProjectActivity().CompareTo(that.ProjectActivity());
         }
 

@@ -14,7 +14,7 @@ namespace Ena.Timesheet.Ena
         private static readonly string dateFormat = "MM/dd/yy";
         protected static readonly float HourlyRate = 60.0f;
 
-        private LocalDate month;
+        private DateTime month;
         private string projectId = "";
         private string activity = "";
         private int? day;
@@ -26,22 +26,19 @@ namespace Ena.Timesheet.Ena
         private string error = "";
         private int validCells;
         protected float? entryId;
-        private LocalDate date;
+        private DateTime date;
         protected readonly int lineId;
-        private MondayAlignedCalendar calendar;
 
         public EnaTsEntry()
         {
             this.lineId = -1;
         }
 
-        // You will need to implement or replace MondayAlignedCalendar, LocalDate, and Text.unquote for C#
-        public EnaTsEntry(int lineId, LocalDate month, IList<object> row)
+        public EnaTsEntry(int lineId, DateTime month, IList<object> row)
         {
             this.lineId = lineId;
             this.entryId = (float)lineId;
             this.month = month;
-            this.calendar = new MondayAlignedCalendar(month);
 
             var err = new StringBuilder();
             int cellId = 0;
@@ -77,7 +74,7 @@ namespace Ena.Timesheet.Ena
                         try
                         {
                             this.day = Convert.ToInt32(cell);
-                            this.date = month.WithDayOfMonth(day.Value);
+                            this.date = new DateTime(month.Year, month.Month, day.Value);
                             validCells++;
                         }
                         catch
@@ -157,16 +154,22 @@ namespace Ena.Timesheet.Ena
             this.validCells = validCells;
         }
 
-        public LocalDate Month => month;
-        public string ProjectId => projectId;
-        public string Activity => activity;
-        public int? Day => day;
-        public TimeSpan? Start => start;
-        public TimeSpan? End => end;
-        public float? Hours => hours;
-        public string Description => description;
-        public float? Charge => charge;
-        public string Error => error;
+        public DateTime Month => month;
+        public string ProjectId { get; set; } = "";
+        public string Activity { get; set; } = "";
+        public int? Day { get; set; }
+        public TimeSpan? Start { get; set; }
+        public TimeSpan? End { get; set; }
+        public float? Hours { get; set; }
+        public DateTime? Date => date;
+        public string Description { get; set; } = "";
+        public float? Charge { get; set; }
+        public string Error { get; set; } = "";
+
+        public void SetError(string error)
+        {
+            this.Error = error;
+        }
         public float? EntryId 
         { 
             get => entryId;
@@ -175,24 +178,35 @@ namespace Ena.Timesheet.Ena
         public int ValidCells => validCells;
         public int LineId => lineId;
 
-        public string GetRate()
+        public virtual string GetDate()
         {
-            return $"${HourlyRate.ToString("0.##", decimalFormat)}/hr";
-        }
-
-        public string GetCharge()
-        {
-            return charge.HasValue ? $"${charge.Value:F2}" : "$0.00";
-        }
-
-        public string GetDate()
-        {
-            return date.ToString(dateFormat, CultureInfo.InvariantCulture);
+            return DateTime.Now.ToString("yyyy-MM-dd");
         }
 
         public int GetWeekOfMonth()
         {
-            return calendar.GetWeekOfMonth(date);
+            // Get the first day of the month
+            DateTime firstDayOfMonth = new DateTime(Month.Year, Month.Month, 1);
+            // Get the first Monday of the month
+            int firstMonday = (8 - (int)firstDayOfMonth.DayOfWeek + (int)DayOfWeek.Monday) % 7;
+            // Calculate the week number
+            int weekNumber = (Day.GetValueOrDefault() + firstMonday - 1) / 7;
+            return weekNumber + 1;
+        }
+
+        public virtual string FormattedHours()
+        {
+            return Hours.HasValue ? string.Format("{0:F2}", Hours.Value) : "";
+        }
+
+        public virtual string GetRate()
+        {
+            return HourlyRate.ToString("0.##", decimalFormat);
+        }
+
+        public virtual string GetCharge()
+        {
+            return Charge.HasValue ? string.Format("{0:C2}", Charge.Value) : "";
         }
 
         public string SortKey()
@@ -205,12 +219,9 @@ namespace Ena.Timesheet.Ena
             return Unquote(projectId) + "#" + Unquote(activity);
         }
 
-        public string FormattedHours()
-        {
-            return hours.HasValue ? hours.Value.ToString("0.##", decimalFormat) : "0";
-        }
 
-        public override bool Equals(object obj)
+
+        public override bool Equals(object? obj)
         {
             if (obj is EnaTsEntry that)
             {
@@ -224,8 +235,9 @@ namespace Ena.Timesheet.Ena
             return HashCode.Combine(month, day, start);
         }
 
-        public int CompareTo(EnaTsEntry that)
+        public int CompareTo(EnaTsEntry? that)
         {
+            if (that == null) throw new ArgumentNullException(nameof(that));
             return this.SortKey().CompareTo(that.SortKey());
         }
 

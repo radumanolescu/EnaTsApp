@@ -14,7 +14,7 @@ namespace Ena.Timesheet.Ena
 
         private readonly DateTime timesheetMonth;
         private readonly List<EnaTsEntry> enaTsEntries = new List<EnaTsEntry>();
-        private readonly List<EnaTsProjectEntry> projectEntries = new List<EnaTsProjectEntry>();
+        private List<EnaTsProjectEntry> projectEntries = new List<EnaTsProjectEntry>();
         private byte[] xlsxBytes;
 
         public EnaTimesheet(DateTime timesheetMonth, Stream inputStream)

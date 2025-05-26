@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using OfficeOpenXml;
+using Com.Ena.Timesheet.Phd;
 
 namespace EnaTsApp
 {
@@ -21,6 +22,7 @@ namespace EnaTsApp
         private DateTime selectedDate = DateTime.Now;
         private List<List<string>>? templateData;
         private List<List<string>>? timesheetData;
+        private PhdTemplate? phdTemplate;
 
         public MainForm()
         {

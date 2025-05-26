@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace Ena.Timesheet.Phd
+namespace Com.Ena.Timesheet.Phd
 {
     /// <summary>
     /// Model for a single row in the PHD template
@@ -25,6 +25,42 @@ namespace Ena.Timesheet.Phd
             RowNum = rowNum;
             Client = client;
             Task = task;
+        }
+
+        public int GetRowNum() => RowNum;
+        public string GetClient() => Client;
+        public string GetTask() => Task;
+        public Dictionary<int, double> GetEffort() => Effort;
+
+        public void SetClient(string client)
+        {
+            Client = client;
+        }
+
+        public void SetTask(string task)
+        {
+            Task = task;
+        }
+
+        public void SetEffort(Dictionary<int, double> effort)
+        {
+            Effort = effort;
+        }
+
+        private int? day;
+        public int? Day
+        {
+            get => day;
+            set => day = value;
+        }
+        public void SetDay(int? day)
+        {
+            this.day = day;
+        }
+
+        public string ToJson()
+        {
+            return JsonConvert.SerializeObject(this);
         }
 
         public Dictionary<int, double> Effort

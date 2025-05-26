@@ -1,4 +1,8 @@
-namespace Com.Ena.Timesheet.Ena
+using System;
+using System.Text;
+using Ena.Timesheet.Ena;
+
+namespace Ena.Timesheet.Ena
 {
     /// <summary>
     /// An entry that represents a total for a week
@@ -12,12 +16,37 @@ namespace Com.Ena.Timesheet.Ena
         {
             this.hoursLabel = hoursLabel;
             this.chargeLabel = chargeLabel;
-            this.SetEntryId(entryId);
-            this.SetProjectId("");
-            this.SetActivity("");
-            this.SetHours(totalHours);
-            this.SetDescription(chargeLabel);
-            this.SetCharge(totalCharge);
+            this.EntryId = entryId;
+            this.ProjectId = "";
+            this.Activity = "";
+            this.Hours = totalHours;
+            this.Description = chargeLabel;
+            this.Charge = totalCharge;
+        }
+
+        public void SetProjectId(string projectId)
+        {
+            this.ProjectId = projectId;
+        }
+
+        public void SetActivity(string activity)
+        {
+            this.Activity = activity;
+        }
+
+        public void SetHours(float? hours)
+        {
+            this.Hours = hours;
+        }
+
+        public void SetDescription(string description)
+        {
+            this.Description = description;
+        }
+
+        public void SetCharge(float? charge)
+        {
+            this.Charge = charge;
         }
 
         /// <summary>
