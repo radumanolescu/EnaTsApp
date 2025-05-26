@@ -1,0 +1,101 @@
+# .NET Core
+bin/
+obj/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+
+# Visual Studio
+.vs/
+*.ntvs*
+*.njsproj
+*.sln.docstates
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Windows Installer files
+*.cab
+*.msi
+*.msix
+*.msixbundle
+*.appx
+*.appxbundle
+*.appxupload
+
+# Windows shortcuts
+*.lnk
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+*.csproj.iml
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio cache/options directory
+.vs/
+
+# Visual Studio Code coverage results
+*.coverage
+*.coveragexml
+
+# Visual Studio cache files
+# files ending in .cache can be ignored
+*.[Cc]ache
+# but keep track of directories ending in .cache
+!?*.[Cc]ache/
+
+# Visual Studio History
+ehthumbs.db
+AppPackages/
+BundleArtifacts/
+Package.StoreAssociation.xml
+
+# Windows Installer files
+*.cab
+*.msi
+*.msix
+*.msixbundle
+*.appx
+*.appxbundle
+*.appxupload
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+*.csproj.iml
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Windows shortcuts
+*.lnk
