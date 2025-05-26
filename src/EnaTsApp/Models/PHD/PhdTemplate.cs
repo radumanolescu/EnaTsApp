@@ -15,12 +15,16 @@ namespace Com.Ena.Timesheet.Phd
         private List<PhdTemplateEntry> entries;
         private string yearMonth; // yyyyMM
 
+        public string YearMonth => yearMonth;
+        private IWorkbook workbook;
+
         public static readonly int colOffset = 1;
 
         public PhdTemplate(string yearMonth, List<PhdTemplateEntry> entries)
         {
             this.yearMonth = yearMonth;
             this.entries = entries;
+            this.workbook = new XSSFWorkbook();
         }
 
         public PhdTemplate(string yearMonth, List<List<string>>? templateData)
@@ -85,15 +89,7 @@ namespace Com.Ena.Timesheet.Phd
             return entries.Sum(entry => entry.TotalHours());
         }
 
-        public byte[] GetXlsxBytes()
-        {
-            return xlsxBytes;
-        }
 
-        public void SetXlsxBytes(byte[] xlsxBytes)
-        {
-            this.xlsxBytes = xlsxBytes;
-        }
 
         public void Update(EnaTimesheet enaTimesheet)
         {
@@ -159,8 +155,7 @@ namespace Com.Ena.Timesheet.Phd
 
         public void UpdateXlsx(int index)
         {
-            if (xlsxBytes == null) return;
-            using (var inputStream = new MemoryStream(xlsxBytes))
+            using (var inputStream = new MemoryStream())
             {
                 IWorkbook workbook = WorkbookFactory.Create(inputStream);
                 ISheet sheet = workbook.GetSheetAt(index);
@@ -178,14 +173,9 @@ namespace Com.Ena.Timesheet.Phd
                         ICell cell = row.GetCell(colOffset + day) ?? row.CreateCell(colOffset + day);
                         cell.SetCellValue(effort);
                     }
-                    rowId++;
                 }
                 workbook.GetCreationHelper().CreateFormulaEvaluator().EvaluateAll();
-                using (var outputStream = new MemoryStream())
-                {
-                    workbook.Write(outputStream);
-                    xlsxBytes = outputStream.ToArray();
-                }
+                workbook.Write(inputStream);
             }
         }
 
@@ -209,7 +199,15 @@ namespace Com.Ena.Timesheet.Phd
 
         public void WriteFile(FileInfo output)
         {
-            File.WriteAllBytes(output.FullName, xlsxBytes);
+            if (workbook == null)
+            {
+                workbook = new XSSFWorkbook();
+            }
+            
+            using (var outputStream = new FileStream(output.FullName, FileMode.Create))
+            {
+                workbook.Write(outputStream);
+            }
         }
     }
 }
