@@ -7,6 +7,7 @@ using System.Linq;
 using System.Windows.Forms;
 using OfficeOpenXml;
 using Com.Ena.Timesheet.Phd;
+using Ena.Timesheet.Ena;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -29,12 +30,30 @@ namespace EnaTsApp
         private List<List<string>>? templateData;
         private List<List<string>>? timesheetData;
         private PhdTemplate? phdTemplate;
+        private EnaTimesheet? enaTimesheet;
 
         public MainForm(ILogger<MainForm> logger, IServiceProvider serviceProvider)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
-            _logger.LogInformation("MainForm initialized");
+            this.Load += MainForm_Load;
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            try
+            {
+                _logger.LogInformation("MainForm initialized");
+                // Ensure logs directory exists
+                var logsDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "EnaTsApp", "logs");
+                Directory.CreateDirectory(logsDirectory);
+                _logger.LogInformation($"Logs directory created: {logsDirectory}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error initializing MainForm");
+                throw;
+            }
             InitializeComponent();
             // Set EPPlus license context for non-commercial use
             //ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -220,8 +239,8 @@ namespace EnaTsApp
                 {
                     ShowSuccess($"Template loaded: {templateData.Count} rows");
                     DisplayData(templateData, "Template Data");
+                    phdTemplate = new PhdTemplate(selectedDate.ToString("yyyyMM"), templateData);
                 }
-                phdTemplate = new PhdTemplate(selectedDate.ToString("yyyyMM"), templateData);
             }
             catch (Exception ex)
             {
@@ -238,6 +257,7 @@ namespace EnaTsApp
                 {
                     ShowSuccess($"Timesheet loaded: {timesheetData.Count} rows");
                     DisplayData(timesheetData, "Timesheet Data");
+                    enaTimesheet = new EnaTimesheet(selectedDate, timesheetData);
                 }
             }
             catch (Exception ex)

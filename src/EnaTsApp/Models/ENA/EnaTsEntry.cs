@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using System.Text;
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 
 namespace Ena.Timesheet.Ena
 {
@@ -10,6 +11,7 @@ namespace Ena.Timesheet.Ena
     /// </summary>
     public class EnaTsEntry : IComparable<EnaTsEntry>
     {
+        private readonly ILogger<EnaTsEntry> _logger;
         private static readonly NumberFormatInfo decimalFormat = new NumberFormatInfo { NumberDecimalDigits = 2 };
         private static readonly string dateFormat = "MM/dd/yy";
         protected static readonly float HourlyRate = 60.0f;
@@ -34,11 +36,13 @@ namespace Ena.Timesheet.Ena
             this.lineId = -1;
         }
 
-        public EnaTsEntry(int lineId, DateTime month, IList<object> row)
+        public EnaTsEntry(int lineId, DateTime month, IList<object> row, ILogger<EnaTsEntry>? logger = null)
         {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.lineId = lineId;
             this.entryId = (float)lineId;
             this.month = month;
+            _logger?.LogInformation($"Creating EnaTsEntry for line {lineId}");
 
             var err = new StringBuilder();
             int cellId = 0;
@@ -206,7 +210,7 @@ namespace Ena.Timesheet.Ena
                         try
                         {
                             this.start = ParseTime(cell);
-                            Console.WriteLine($"Parsed {cell} to {this.start}");
+                            _logger.LogInformation($"Parsed start time {cell} to {this.start}");
                             validCells++;
                         }
                         catch
