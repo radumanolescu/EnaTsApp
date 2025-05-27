@@ -50,6 +50,20 @@ namespace Ena.Timesheet.Ena
             }
         }
 
+        public EnaTimesheet(DateTime timesheetMonth, List<List<string>>? timesheetData)
+        {
+            this.timesheetMonth = timesheetMonth;
+            this.enaTsEntries = new List<EnaTsEntry>();
+            if (timesheetData != null)
+            {
+                for (int i = 0; i < timesheetData.Count; i++)
+                {
+                    var entry = new EnaTsEntry(i, timesheetMonth, timesheetData[i]);
+                    this.enaTsEntries.Add(entry);
+                }
+            }
+        }
+
         private void ParseSortReindex(Stream inputStream)
         {
             var inputEntries = ParseEntries(inputStream);

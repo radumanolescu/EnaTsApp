@@ -154,6 +154,127 @@ namespace Ena.Timesheet.Ena
             this.validCells = validCells;
         }
 
+        public EnaTsEntry(int lineId, DateTime month, List<string> row)
+        {
+            this.lineId = lineId;
+            this.entryId = (float)lineId;
+            this.month = month;
+
+            var err = new StringBuilder();
+            int cellId = 0;
+            int validCells = 0;
+            foreach (var cell in row)
+            {
+                switch (cellId)
+                {
+                    case 0: // projectId#activity
+                        try
+                        {
+                            string projectActivity = cell;
+                            var pa = projectActivity.Split('#');
+                            if (pa.Length == 2)
+                            {
+                                this.projectId = pa[0];
+                                this.activity = pa[1];
+                                validCells++;
+                            }
+                            else
+                            {
+                                this.projectId = "";
+                                this.activity = "";
+                                err.Append($"ProjectActivity must be in the form 'ProjectID#Activity', but was '{projectActivity}'. ");
+                            }
+                        }
+                        catch
+                        {
+                            err.Append("ProjectActivity must be in the form 'ProjectID#Activity'. ");
+                        }
+                        break;
+                    case 1: // day of month
+                        try
+                        {
+                            this.day = Convert.ToInt32(cell);
+                            this.date = new DateTime(month.Year, month.Month, day.Value);
+                            validCells++;
+                        }
+                        catch
+                        {
+                            err.Append("Day must be a number. ");
+                        }
+                        break;
+                    case 2: // start time
+                        try
+                        {
+                            this.start = ParseTime(cell);
+                            Console.WriteLine($"Parsed {cell} to {this.start}");
+                            validCells++;
+                        }
+                        catch
+                        {
+                            err.Append("Start time must be a time. ");
+                        }
+                        break;
+                    case 3: // end time
+                        try
+                        {
+                            this.end = ParseTime(cell);
+                            validCells++;
+                        }
+                        catch
+                        {
+                            err.Append("End time must be a time. ");
+                        }
+                        break;
+                    case 4: // hours
+                        try
+                        {
+                            this.hours = Convert.ToSingle(cell);
+                            validCells++;
+                        }
+                        catch
+                        {
+                            err.Append("Hours must be a number. ");
+                        }
+                        break;
+                    case 5: // description
+                        try
+                        {
+                            this.description = cell;
+                            if (string.IsNullOrEmpty(this.description))
+                            {
+                                err.Append("Description must be non-empty. ");
+                            }
+                            else
+                            {
+                                validCells++;
+                            }
+                        }
+                        catch
+                        {
+                            err.Append("Description must be non-empty. ");
+                        }
+                        break;
+                    case 6: // validation error, if previously found
+                        try
+                        {
+                            err.Append(cell);
+                        }
+                        catch
+                        {
+                            err.Append("Error while reading the error message from the sheet. ");
+                        }
+                        break;
+                }
+                cellId++;
+            }
+            if (this.hours != null)
+            {
+                this.charge = hours * HourlyRate;
+            }
+            this.error = err.ToString();
+            this.validCells = validCells;
+        }
+
         public DateTime Month => month;
         public string ProjectId { get; set; } = "";
         public string Activity { get; set; } = "";

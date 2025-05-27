@@ -1,16 +1,22 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
+using System.Text;
+using Com.Ena.Timesheet.Xl;
 using System.Linq;
 using System.Windows.Forms;
 using OfficeOpenXml;
 using Com.Ena.Timesheet.Phd;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EnaTsApp
 {
     public class MainForm : Form
     {
+        private readonly ILogger<MainForm> _logger;
+        private readonly IServiceProvider _serviceProvider;
+
         private Button? btnChooseMonth;
         private Button? btnUploadTemplate;
         private Button? btnUploadTimesheet;
@@ -23,8 +29,12 @@ namespace EnaTsApp
         private List<List<string>>? templateData;
         private List<List<string>>? timesheetData;
         private PhdTemplate? phdTemplate;
-        public MainForm()
+
+        public MainForm(ILogger<MainForm> logger, IServiceProvider serviceProvider)
         {
+            _logger = logger;
+            _serviceProvider = serviceProvider;
+            _logger.LogInformation("MainForm initialized");
             InitializeComponent();
             // Set EPPlus license context for non-commercial use
             //ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -284,49 +294,26 @@ namespace EnaTsApp
 
         private List<List<string>>? ParseExcelFile(string filePath)
         {
-            var data = new List<List<string>>();
-
             try
             {
-                using (var package = new ExcelPackage(new FileInfo(filePath)))
+                var parser = new ExcelParser();
+                var data = parser.ParseExcelFile(filePath);
+                if (data != null)
                 {
-                    var worksheet = package.Workbook.Worksheets.FirstOrDefault();
-                    if (worksheet == null)
-                    {
-                        ShowError("No worksheets found in the Excel file.");
-                        return null;
-                    }
-
-                    int rowCount = worksheet.Dimension?.Rows ?? 0;
-                    int colCount = worksheet.Dimension?.Columns ?? 0;
-
-                    if (rowCount == 0 || colCount == 0)
-                    {
-                        ShowError("The Excel file appears to be empty.");
-                        return null;
-                    }
-
-                    for (int row = 1; row <= rowCount; row++)
-                    {
-                        var rowData = new List<string>();
-                        for (int col = 1; col <= colCount; col++)
-                        {
-                            var cellValue = worksheet.Cells[row, col].Value;
-                            rowData.Add(cellValue?.ToString() ?? string.Empty);
-                        }
-                        data.Add(rowData);
-                    }
-
-                    ShowSuccess($"Successfully parsed Excel file: {data.Count} rows, {colCount} columns");
+                    ShowSuccess($"Successfully parsed Excel file: {data.Count} rows, {data[0].Count} columns");
                 }
+                return data;
+            }
+            catch (InvalidOperationException ex)
+            {
+                ShowError(ex.Message);
+                return null;
             }
             catch (Exception ex)
             {
-                ShowError($"Error parsing Excel file: {ex.Message}");
+                ShowError($"Unexpected error parsing Excel file: {ex.Message}");
                 return null;
             }
-
-            return data;
         }
 
         private void DisplayData(List<List<string>>? data, string title)

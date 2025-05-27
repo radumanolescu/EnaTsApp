@@ -5,6 +5,8 @@ using System.IO;
 using System.Text;
 using Xunit;
 using Com.Ena.Timesheet.Phd;
+using Com.Ena.Timesheet.Xl;
+using Ena.Timesheet.Ena;
 using EnaTsApp.Tests.TestHelpers;
 
 namespace EnaTsApp.Tests.IntegrationTests.Phd
@@ -12,7 +14,6 @@ namespace EnaTsApp.Tests.IntegrationTests.Phd
     public class PhdTemplateIntegrationTests
     {
         private const string TestYearMonth = "202505";
-        private const string TestFilePath = "PHD Blank Timesheet April 2025.xlsx";
 
         [Fact]
         public void CanCreatePhdTemplateFromData()
@@ -76,10 +77,10 @@ namespace EnaTsApp.Tests.IntegrationTests.Phd
         }
 
         [Fact]
-        public void CanReadAndParseExcelFile()
+        public void CanReadAndParsePhdTemplate()
         {
             // Arrange
-            var filePath = TestFileHelper.GetTestFilePath(TestFilePath);
+            var filePath = TestFileHelper.GetTestFilePath("PHD Blank Timesheet April 2025.xlsx");
             var parser = new Parser();
             List<PhdTemplateEntry> entries = new List<PhdTemplateEntry>();
             PhdTemplate template = null;
@@ -118,7 +119,7 @@ namespace EnaTsApp.Tests.IntegrationTests.Phd
                 {
                     foreach (var entry in entries)
                     {
-                        writer.WriteLine($"Entry - Row: {entry.GetRowNum()+1}, Client: '{entry.GetClient()}', Task: '{entry.GetTask()}'");
+                        writer.WriteLine($"Entry - Row: {entry.GetRowNum() + 1}, Client: '{entry.GetClient()}', Task: '{entry.GetTask()}'");
                         var effortDict = entry.GetEffort();
                         if (effortDict != null)
                         {
@@ -135,6 +136,49 @@ namespace EnaTsApp.Tests.IntegrationTests.Phd
                 // This is expected since the test file has duplicate client-task entries
                 Console.WriteLine($"Expected error: {ex.Message}");
                 Assert.Contains("Duplicate client-task", ex.Message);
+            }
+        }
+
+        [Fact]
+        public void CanReadAndParseEnaTimesheet()
+        {
+            // Arrange
+            var filePath = TestFileHelper.GetTestFilePath("PHD 04 - April 2025R.xlsx");
+            var selectedDate = new DateTime(2025, 4, 15); // April 2025
+            
+            try
+            {
+                var parser = new ExcelParser();
+                var rows = parser.ParseExcelFile(filePath);
+                if (rows == null)
+                {
+                    throw new InvalidOperationException("Failed to parse Excel file");
+                }
+
+                EnaTimesheet enaTimesheet = new EnaTimesheet(selectedDate, rows);
+                Assert.NotNull(enaTimesheet);
+                Assert.NotEmpty(enaTimesheet.GetEntries());
+                
+                // Write entries to file
+                var directory = Path.GetDirectoryName(filePath);
+                if (string.IsNullOrEmpty(directory))
+                {
+                    throw new InvalidOperationException("Test file path is invalid");
+                }
+
+                var outputFile = Path.Combine(directory, "ParseEnaTimesheet.txt");
+                using (var writer = new StreamWriter(outputFile))
+                {
+                    foreach (var entry in enaTimesheet.GetEntries())
+                    {
+                        writer.WriteLine($"{entry.ToString()}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                throw;
             }
         }
     }
