@@ -1,4 +1,5 @@
 using System;
+using Ena.Timesheet.Ena;
 using System.Windows.Forms;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -62,12 +63,7 @@ namespace EnaTsApp
                     {
                         Name = "error",
                         FileName = Path.Combine(logsDirectory, "enatsapp-error-${date:format=yyyy-MM-dd}.log"),
-                        Layout = "${longdate} | ${level:uppercase=true} | ${logger} | ${message} ${exception:format=tostring}",
-                        ArchiveFileName = Path.Combine(logsDirectory, "enatsapp-error-${shortdate}.log"),
-                        ArchiveNumbering = NLog.Targets.ArchiveNumberingMode.Date,
-                        ArchiveDateFormat = "yyyy-MM-dd",
-                        ArchiveEvery = NLog.Targets.FileArchivePeriod.Day,
-                        MaxArchiveFiles = 30
+                        Layout = "${longdate} | ${level:uppercase=true} | ${logger} | ${message} ${exception:format=tostring}"
                     };
 
                     var consoleTarget = new NLog.Targets.ConsoleTarget("console")
@@ -99,16 +95,26 @@ namespace EnaTsApp
                         // Apply configuration
                         LogManager.Configuration = nlogConfig;
 
-                        // Ensure logs directory exists
                         Directory.CreateDirectory(logsDirectory);
-                        var setupLogger = LogManager.GetCurrentClassLogger();
-                        setupLogger.Info($"Logs directory created: {logsDirectory}");
-
-                        // Add diagnostic logging to verify target configuration
                         var configLogger = LogManager.GetCurrentClassLogger();
                         configLogger.Info("Main target configured with filename: {0}", mainTarget.FileName);
                         configLogger.Info("Debug target configured with filename: {0}", debugTarget.FileName);
                         configLogger.Info("Error target configured with filename: {0}", errorTarget.FileName);
+
+                        // Configure services
+                        services.AddLogging(builder =>
+                        {
+                            builder.ClearProviders();
+                            builder.SetMinimumLevel(LogLevel.Debug);
+                            builder.AddNLog(hostContext.Configuration.GetSection("Logging"));
+                        });
+
+                        // Register services
+                        services.AddSingleton<MainForm>();
+                        services.AddScoped<ILogger<EnaTimesheet>>(sp => sp.GetRequiredService<ILoggerFactory>().CreateLogger<EnaTimesheet>());
+                        services.AddScoped<ILogger<EnaTsEntry>>(sp => sp.GetRequiredService<ILoggerFactory>().CreateLogger<EnaTsEntry>());
+                        var appLogger = LogManager.GetCurrentClassLogger();
+                        appLogger.Info("Application started");
 
                         // Test log file creation
                         var testLogger = LogManager.GetCurrentClassLogger();
@@ -132,27 +138,6 @@ namespace EnaTsApp
                         setupLogger.Error(ex, "Failed to configure NLog");
                         throw;
                     }
-
-                    // Configure services
-                    services.AddLogging(builder =>
-                    {
-                        builder.ClearProviders();
-                        builder.SetMinimumLevel(LogLevel.Debug);
-                        builder.AddNLog();
-                    });
-
-                    services.AddSingleton<MainForm>();
-                    var logger = LogManager.GetCurrentClassLogger();
-                    logger.Info("Application started");
-                    
-                    services.AddLogging(loggingBuilder =>
-                    {
-                        loggingBuilder.ClearProviders();
-                        loggingBuilder.SetMinimumLevel(LogLevel.Trace);
-                        loggingBuilder.AddNLog(hostContext.Configuration.GetSection("Logging"));
-                    });
-
-                    services.AddSingleton<MainForm>();
                 });
 
             return builder;

@@ -34,15 +34,24 @@ namespace Ena.Timesheet.Ena
         public EnaTsEntry()
         {
             this.lineId = -1;
+            _logger = null;
         }
 
-        public EnaTsEntry(int lineId, DateTime month, IList<object> row, ILogger<EnaTsEntry>? logger = null)
+        public EnaTsEntry(int lineId, DateTime month, IList<object> row, ILogger<EnaTsEntry> logger)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+            _logger = logger;
             this.lineId = lineId;
             this.entryId = (float)lineId;
             this.month = month;
-            _logger?.LogInformation($"Creating EnaTsEntry for line {lineId}");
+            if (row == null)
+            {
+                throw new ArgumentNullException(nameof(row));
+            }
+            _logger.LogInformation($"Creating EnaTsEntry for line {lineId}");
 
             var err = new StringBuilder();
             int cellId = 0;
@@ -69,9 +78,10 @@ namespace Ena.Timesheet.Ena
                                 err.Append($"ProjectActivity must be in the form 'ProjectID#Activity', but was '{projectActivity}'. ");
                             }
                         }
-                        catch
+                        catch (Exception ex)
                         {
-                            err.Append("ProjectActivity must be in the form 'ProjectID#Activity'. ");
+                            _logger.LogError(ex, $"Error processing project activity: {cell}");
+                            err.Append($"Error processing project activity: {ex.Message}");
                         }
                         break;
                     case 1: // day of month
@@ -158,8 +168,13 @@ namespace Ena.Timesheet.Ena
             this.validCells = validCells;
         }
 
-        public EnaTsEntry(int lineId, DateTime month, List<string> row)
+        public EnaTsEntry(int lineId, DateTime month, List<string> row, ILogger<EnaTsEntry> logger)
         {
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+            _logger = logger;
             this.lineId = lineId;
             this.entryId = (float)lineId;
             this.month = month;
@@ -167,6 +182,9 @@ namespace Ena.Timesheet.Ena
             var err = new StringBuilder();
             int cellId = 0;
             int validCells = 0;
+            // concatenate all cells into a single string for logging
+            var rowString = string.Join(", ", row);
+            _logger.LogInformation($"Processing row {rowString}");
             foreach (var cell in row)
             {
                 switch (cellId)
@@ -210,7 +228,7 @@ namespace Ena.Timesheet.Ena
                         try
                         {
                             this.start = ParseTime(cell);
-                            _logger.LogInformation($"Parsed start time {cell} to {this.start}");
+                            _logger.LogDebug($"Parsed start time {cell} to {this.start}");
                             validCells++;
                         }
                         catch
@@ -222,6 +240,7 @@ namespace Ena.Timesheet.Ena
                         try
                         {
                             this.end = ParseTime(cell);
+                            _logger.LogDebug($"Parsed end time {cell} to {this.end}");
                             validCells++;
                         }
                         catch
@@ -343,8 +362,6 @@ namespace Ena.Timesheet.Ena
         {
             return Unquote(projectId) + "#" + Unquote(activity);
         }
-
-
 
         public override bool Equals(object? obj)
         {

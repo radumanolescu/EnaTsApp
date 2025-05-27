@@ -34,8 +34,8 @@ namespace EnaTsApp
 
         public MainForm(ILogger<MainForm> logger, IServiceProvider serviceProvider)
         {
-            _logger = logger;
-            _serviceProvider = serviceProvider;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.Load += MainForm_Load;
         }
 
@@ -252,12 +252,22 @@ namespace EnaTsApp
         {
             try
             {
-                timesheetData = LoadExcelFile("Select Timesheet File");
-                if (timesheetData != null)
+                try
                 {
-                    ShowSuccess($"Timesheet loaded: {timesheetData.Count} rows");
-                    DisplayData(timesheetData, "Timesheet Data");
-                    enaTimesheet = new EnaTimesheet(selectedDate, timesheetData);
+                    var timesheetLogger = _serviceProvider.GetRequiredService<ILogger<EnaTimesheet>>();
+                    var entryLogger = _serviceProvider.GetRequiredService<ILogger<EnaTsEntry>>();
+                    timesheetData = LoadExcelFile("Select Timesheet File");
+                    if (timesheetData != null)
+                    {
+                        ShowSuccess($"Timesheet loaded: {timesheetData.Count} rows");
+                        DisplayData(timesheetData, "Timesheet Data");
+                        enaTimesheet = new EnaTimesheet(selectedDate, timesheetData, timesheetLogger, entryLogger);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error creating EnaTimesheet");
+                    throw;
                 }
             }
             catch (Exception ex)
