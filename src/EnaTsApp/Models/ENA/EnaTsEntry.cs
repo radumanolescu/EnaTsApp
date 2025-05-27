@@ -16,6 +16,27 @@ namespace Ena.Timesheet.Ena
         private static readonly string dateFormat = "MM/dd/yy";
         protected static readonly float HourlyRate = 60.0f;
 
+        private static TimeSpan? ParseTime(object timeValue)
+        {
+            if (timeValue == null) return null;
+            
+            try
+            {
+                // Excel stores times as fractions of a day (1.0 = 24 hours)
+                double excelTime = Convert.ToDouble(timeValue);
+                
+                // Convert fraction of day to hours
+                double hours = excelTime * 24;
+                
+                // Create TimeSpan from hours
+                return TimeSpan.FromHours(hours);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         private DateTime month;
         private string projectId = "";
         private string activity = "";
@@ -100,22 +121,40 @@ namespace Ena.Timesheet.Ena
                         try
                         {
                             this.start = ParseTime(cell);
-                            validCells++;
+                            if (this.start != null)
+                            {
+                                validCells++;
+                                _logger?.LogDebug($"Parsed start time {cell} to {this.start}");
+                            }
+                            else
+                            {
+                                err.Append("Start time must be a valid time");
+                            }
                         }
-                        catch
+                        catch (Exception ex)
                         {
-                            err.Append("Start time must be a time. ");
+                            _logger?.LogError(ex, $"Error parsing start time: {cell}");
+                            err.Append($"Start time must be a time: {ex.Message}");
                         }
                         break;
                     case 3: // end time
                         try
                         {
                             this.end = ParseTime(cell);
-                            validCells++;
+                            if (this.end != null)
+                            {
+                                validCells++;
+                                _logger?.LogDebug($"Parsed end time {cell} to {this.end}");
+                            }
+                            else
+                            {
+                                err.Append("End time must be a valid time");
+                            }
                         }
-                        catch
+                        catch (Exception ex)
                         {
-                            err.Append("End time must be a time. ");
+                            _logger?.LogError(ex, $"Error parsing end time: {cell}");
+                            err.Append($"End time must be a time: {ex.Message}");
                         }
                         break;
                     case 4: // hours
@@ -398,14 +437,7 @@ namespace Ena.Timesheet.Ena
         }
 
         // Helper methods for C# version
-        private static TimeSpan? ParseTime(object cell)
-        {
-            if (cell == null) return null;
-            if (cell is TimeSpan ts) return ts;
-            if (TimeSpan.TryParse(cell.ToString(), out var result)) return result;
-            if (DateTime.TryParse(cell.ToString(), out var dt)) return dt.TimeOfDay;
-            return null;
-        }
+
 
         private static string Unquote(string s)
         {
