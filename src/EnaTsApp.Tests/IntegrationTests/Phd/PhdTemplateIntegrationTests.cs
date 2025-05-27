@@ -1,4 +1,5 @@
 using System;
+using Ena.Timesheet.Tests;
 using System.Linq;
 using System.Collections.Generic;
 using System.IO;
@@ -155,7 +156,9 @@ namespace EnaTsApp.Tests.IntegrationTests.Phd
                     throw new InvalidOperationException("Failed to parse Excel file");
                 }
 
-                EnaTimesheet enaTimesheet = new EnaTimesheet(selectedDate, rows);
+                var logger = TestLogger.CreateLogger<EnaTimesheet>();
+                var entryLogger = TestLogger.CreateLogger<EnaTsEntry>();
+                EnaTimesheet enaTimesheet = new EnaTimesheet(selectedDate, rows, logger, entryLogger);
                 Assert.NotNull(enaTimesheet);
                 Assert.NotEmpty(enaTimesheet.GetEntries());
                 
