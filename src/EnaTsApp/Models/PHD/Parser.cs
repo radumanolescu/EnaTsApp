@@ -179,18 +179,18 @@ namespace Com.Ena.Timesheet.Phd
             string ws = w.ToJson();
             int xl = w.GetRowNum() + 1;
             string ps = $"{{xl={xl},t={w.EntryType()},c=`{pC}`,b={pB},e={pE}}}";
-            // Console.WriteLine(ws + "\t\t" + ps);
+            Console.WriteLine(ws + "\t\t" + ps);
         }
 
         private void S(string pC, int pB, int pE, List<PhdTemplateEntry> entries)
         {
             if (string.IsNullOrEmpty(pC) || pB < 0 || pE < 0)
             {
-                var header = new string[entries.Count];
-                for (int i = 0; i < entries.Count; i++)
-                {
-                    header[i] = entries[i].ToString();
-                }
+                return;
+            }
+            for (int lineNum = pB; lineNum <= pE; lineNum++)
+            {
+                entries[lineNum].SetClient(pC);
             }
         }
     }

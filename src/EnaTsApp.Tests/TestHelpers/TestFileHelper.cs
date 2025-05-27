@@ -6,11 +6,9 @@ namespace EnaTsApp.Tests.TestHelpers
     {
         public static string GetTestFilePath(string relativePath)
         {
-            var solutionDir = Path.GetFullPath(Path.Combine(
+            var testDataPath = Path.Combine(
                 Path.GetDirectoryName(typeof(TestFileHelper).Assembly.Location)!,
-                "..", "..", "..", ".."));
-
-            var testDataPath = Path.Combine(solutionDir, "src", "EnaTsApp.Tests", "TestData", relativePath);
+                "..", "..", "..", "..", "..", "src", "EnaTsApp.Tests", "TestData", relativePath);
             return testDataPath;
         }
     }
