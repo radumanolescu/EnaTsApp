@@ -9,7 +9,7 @@ namespace Com.Ena.Timesheet.Xl
     {
         private const int SHEET_INDEX = 0;
 
-        public List<List<string>>? ParseExcelFile(string filePath)
+        public List<List<string>> ParseExcelFile(string filePath)
         {
             var data = new List<List<string>>();
 

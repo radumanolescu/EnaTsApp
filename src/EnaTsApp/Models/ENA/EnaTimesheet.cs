@@ -7,7 +7,7 @@ using System.Text;
 using System.Collections.ObjectModel;
 using Microsoft.Extensions.Logging;
 
-namespace Ena.Timesheet.Ena
+namespace Com.Ena.Timesheet.Ena
 {
     public class EnaTimesheet
     {
@@ -19,6 +19,12 @@ namespace Ena.Timesheet.Ena
         private byte[]? xlsxBytes;
         private readonly ILogger<EnaTimesheet> _logger;
         private readonly ILogger<EnaTsEntry> _entryLogger;
+
+        public EnaTimesheet(string yyyyMM, List<List<string>> timesheetData)
+        {
+            this.timesheetMonth = DateTime.ParseExact(yyyyMM, "yyyyMM", CultureInfo.InvariantCulture);
+            // ToDo: implement
+        }
 
         public EnaTimesheet(DateTime timesheetMonth, Stream inputStream, ILogger<EnaTimesheet> logger, ILogger<EnaTsEntry> entryLogger)
         {

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using Com.Ena.Timesheet.Phd;
-using Ena.Timesheet.Ena;
+using Com.Ena.Timesheet.Ena;
 using Com.Ena.Timesheet.Xl;
 
 namespace Com.Ena.Timesheet.Phd
@@ -51,7 +51,7 @@ namespace Com.Ena.Timesheet.Phd
                     string task = row.GetCell(1)?.ToString()?.Trim() ?? "";
 
                     // Read the effort per day from the row
-                    var effort = new Dictionary<int?, double>();
+                    var effort = new Dictionary<int, double>();
                     // Skip the first row (header)
                     if (rowNum > 0)
                     {

@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 
-namespace Ena.Timesheet.Ena
+namespace Com.Ena.Timesheet.Ena
 {
     public class EnaTsProjectEntry : IComparable<EnaTsProjectEntry>
     {

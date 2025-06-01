@@ -6,7 +6,7 @@ using System.Text;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using Com.Ena.Timesheet.Phd;
-using Ena.Timesheet.Ena;
+using Com.Ena.Timesheet.Ena;
 
 namespace Com.Ena.Timesheet.Phd
 {
@@ -101,7 +101,7 @@ namespace Com.Ena.Timesheet.Phd
                 {
                     if (enaEffort.TryGetValue(entry.ClientHashTask(), out var enaEntry))
                     {
-                        var effort = new Dictionary<int?, double>();
+                        var effort = new Dictionary<int, double>();
                         foreach (var dayEffort in enaEntry)
                         {
                             effort[dayEffort.Key] = dayEffort.Value;
@@ -114,7 +114,7 @@ namespace Com.Ena.Timesheet.Phd
             {
                 if (enaEffort.TryGetValue(phdEntry.ClientHashTask(), out var enaEntry))
                 {
-                    var effort = new Dictionary<int?, double>();
+                    var effort = new Dictionary<int, double>();
                     foreach (var dayEffort in enaEntry)
                     {
                         effort[dayEffort.Key] = dayEffort.Value;
@@ -153,6 +153,7 @@ namespace Com.Ena.Timesheet.Phd
             }
         }
 
+        // ToDo: fix this
         public void UpdateXlsx(int index)
         {
             using (var inputStream = new MemoryStream())
@@ -168,7 +169,7 @@ namespace Com.Ena.Timesheet.Phd
                     var entry = entries[rowId];
                     foreach (var dayEffort in entry.GetEffort())
                     {
-                        int day = dayEffort.Key.Value;
+                        int day = dayEffort.Key;
                         double effort = dayEffort.Value;
                         ICell cell = row.GetCell(colOffset + day) ?? row.CreateCell(colOffset + day);
                         cell.SetCellValue(effort);

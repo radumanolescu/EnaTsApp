@@ -4,7 +4,7 @@ using System.Text;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 
-namespace Ena.Timesheet.Ena
+namespace Com.Ena.Timesheet.Ena
 {
     /// <summary>
     /// Model for a single row in the ENA timesheet
@@ -295,9 +295,9 @@ namespace Ena.Timesheet.Ena
             return string.IsNullOrEmpty(s) ? "" : s.Replace("\"", "");
         }
 
-        // Placeholder for LocalDate and MondayAlignedCalendar
-        // You need to implement or use a suitable library for LocalDate and MondayAlignedCalendar in C#
-        // For now, you can use DateTime for LocalDate and stub MondayAlignedCalendar as needed
+        // Placeholder for LocalDate
+        // You need to implement or use a suitable library for LocalDate in C#
+        // For now, you can use DateTime for LocalDate as needed
     }
 
     // Placeholder for LocalDate (replace with NodaTime or your own implementation)
@@ -308,19 +308,8 @@ namespace Ena.Timesheet.Ena
         public LocalDate WithDayOfMonth(int day) => new LocalDate(new DateTime(date.Year, date.Month, day));
         public override string ToString() => date.ToString("yyyy-MM-dd");
         public string ToString(string format, IFormatProvider provider) => date.ToString(format, provider);
-        public override bool Equals(object obj) => obj is LocalDate ld && date.Equals(ld.date);
+        public override bool Equals(object obj) => obj != null && obj is LocalDate ld && date.Equals(ld.date);
         public override int GetHashCode() => date.GetHashCode();
     }
 
-    // Placeholder for MondayAlignedCalendar
-    public class MondayAlignedCalendar
-    {
-        private LocalDate month;
-        public MondayAlignedCalendar(LocalDate month) { this.month = month; }
-        public int GetWeekOfMonth(LocalDate date)
-        {
-            // Implement week-of-month logic as needed
-            return 1;
-        }
-    }
 }

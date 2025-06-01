@@ -7,9 +7,11 @@ using System.Linq;
 using System.Windows.Forms;
 using OfficeOpenXml;
 using Com.Ena.Timesheet.Phd;
-using Ena.Timesheet.Ena;
+using Com.Ena.Timesheet.Ena;
+using Com.Ena.Timesheet;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using System.IO;
 
 namespace EnaTsApp
 {
@@ -24,8 +26,9 @@ namespace EnaTsApp
         private Button? btnProcess;
         private Panel? errorPanel;
         private Label? errorLabel;
-        private DataGridView? dataGrid;
-        
+        private DataGridView? dataGrid;        
+        private Dictionary<string, string> fileLocations = new Dictionary<string, string>();
+
         private DateTime selectedDate = DateTime.Now;
         private List<List<string>>? templateData;
         private List<List<string>>? timesheetData;
@@ -115,7 +118,7 @@ namespace EnaTsApp
             };
             btnUploadTimesheet.Click += BtnUploadTimesheet_Click;
 
-            // Button 4: Process (optional fourth button)
+            // Button 4: Process
             btnProcess = new Button
             {
                 Text = "Process Data",
@@ -234,7 +237,7 @@ namespace EnaTsApp
         {
             try
             {
-                templateData = LoadExcelFile("Select Template File");
+                templateData = LoadExcelFile("Select Template File", "template");
                 if (templateData != null)
                 {
                     ShowSuccess($"Template loaded: {templateData.Count} rows");
@@ -256,7 +259,7 @@ namespace EnaTsApp
                 {
                     var timesheetLogger = _serviceProvider.GetRequiredService<ILogger<EnaTimesheet>>();
                     var entryLogger = _serviceProvider.GetRequiredService<ILogger<EnaTsEntry>>();
-                    timesheetData = LoadExcelFile("Select Timesheet File");
+                    timesheetData = LoadExcelFile("Select Timesheet File", "timesheet");
                     if (timesheetData != null)
                     {
                         ShowSuccess($"Timesheet loaded: {timesheetData.Count} rows");
@@ -280,11 +283,16 @@ namespace EnaTsApp
         {
             try
             {
-                if (templateData == null && timesheetData == null)
+                if (templateData == null || timesheetData == null)
                 {
-                    ShowError("Please load at least one Excel file first.");
+                    ShowError("Please load a template and a timesheet first.");
                     return;
                 }
+                string yyyyMM = selectedDate.ToString("yyyyMM");
+                string templatePath = fileLocations["template"];
+                string timesheetPath = fileLocations["timesheet"];
+                TimesheetProcessor processor = new TimesheetProcessor(yyyyMM, templatePath, timesheetPath);
+                processor.Process();
 
                 string message = "Processing complete.\n";
                 message += $"Selected Date: {selectedDate.ToString("MMMM yyyy")}\n";
@@ -299,7 +307,7 @@ namespace EnaTsApp
             }
         }
 
-        private List<List<string>>? LoadExcelFile(string dialogTitle)
+        private List<List<string>>? LoadExcelFile(string dialogTitle, string fileKey)
         {
             try
             {
@@ -311,6 +319,7 @@ namespace EnaTsApp
 
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
+                    fileLocations[fileKey] = openFileDialog.FileName;
                     return ParseExcelFile(openFileDialog.FileName);
                 }
                 return null;

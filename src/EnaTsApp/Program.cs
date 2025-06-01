@@ -1,12 +1,11 @@
 using System;
-using Ena.Timesheet.Ena;
+using Com.Ena.Timesheet.Ena;
 using System.Windows.Forms;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using System.IO;
-using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 using NLog;
 using NLog.Web;

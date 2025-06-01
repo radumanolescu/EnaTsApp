@@ -1,8 +1,8 @@
 using System;
 using System.Text;
-using Ena.Timesheet.Ena;
+using Com.Ena.Timesheet.Ena;
 
-namespace Ena.Timesheet.Ena
+namespace Com.Ena.Timesheet.Ena
 {
     /// <summary>
     /// An entry that represents a blank line in the table
