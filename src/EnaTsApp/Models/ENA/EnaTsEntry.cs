@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Com.Ena.Timesheet.Ena
 {
@@ -15,6 +16,15 @@ namespace Com.Ena.Timesheet.Ena
         private static readonly NumberFormatInfo decimalFormat = new NumberFormatInfo { NumberDecimalDigits = 2 };
         private static readonly string dateFormat = "MM/dd/yy";
         protected static readonly float HourlyRate = 60.0f;
+
+        private static readonly IServiceProvider _serviceProvider = new ServiceCollection()
+            .AddLogging(builder => builder.AddConsole())
+            .BuildServiceProvider();
+
+        private static ILogger<T> GetLogger<T>()
+        {
+            return _serviceProvider.GetRequiredService<ILogger<T>>();
+        }
 
         private static TimeSpan? ParseTime(object timeValue)
         {
@@ -55,20 +65,23 @@ namespace Com.Ena.Timesheet.Ena
         public EnaTsEntry()
         {
             this.lineId = -1;
-            _logger = null;
+            _logger = GetLogger<EnaTsEntry>();
+            validCells = 0;
+            entryId = 0;
         }
 
-        public EnaTsEntry(int lineId, DateTime month, List<string> row, ILogger<EnaTsEntry> logger)
+        public EnaTsEntry(int lineId, DateTime month, List<string> row)
         {
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-            _logger = logger;
             this.lineId = lineId;
-            this.entryId = (float)lineId;
             this.month = month;
+            this.date = new DateTime(month.Year, month.Month, 1);
+            this.validCells = 0;
+            _logger = GetLogger<EnaTsEntry>();
+            ParseRow(row);
+        }
 
+        private void ParseRow(List<string> row)
+        {
             var err = new StringBuilder();
             int cellId = 0;
             int validCells = 0;

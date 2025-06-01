@@ -124,7 +124,7 @@ namespace Com.Ena.Timesheet.Ena
             {
                 for (int i = 0; i < timesheetData.Count; i++)
                 {
-                    var entry = new EnaTsEntry(i, timesheetMonth, timesheetData[i], _entryLogger);
+                    var entry = new EnaTsEntry(i, timesheetMonth, timesheetData[i]);
                     this.enaTsEntries.Add(entry);
                 }
             }
