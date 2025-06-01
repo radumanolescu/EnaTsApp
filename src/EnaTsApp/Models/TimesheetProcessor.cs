@@ -6,7 +6,8 @@ using Com.Ena.Timesheet.Xl;
 using Com.Ena.Timesheet.Phd;
 using Com.Ena.Timesheet.Ena;
 using OfficeOpenXml;
-using System.IO;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Com.Ena.Timesheet
 {
@@ -15,41 +16,65 @@ namespace Com.Ena.Timesheet
         private readonly string _templatePath;
         private readonly string _timesheetPath;
         private readonly string _yyyyMM;
+        private readonly ILogger<TimesheetProcessor> _logger;
 
         public TimesheetProcessor(string yyyyMM, string templatePath, string timesheetPath)
         {
             _yyyyMM = yyyyMM;
             _templatePath = templatePath;
             _timesheetPath = timesheetPath;
+            _logger = CreateLogger();
+            _logger.LogInformation($"Created TimesheetProcessor for {_yyyyMM}");
+            _logger.LogInformation($"Template path: {_templatePath}");
+            _logger.LogInformation($"Timesheet path: {_timesheetPath}");
+        }
+
+        private ILogger<TimesheetProcessor> CreateLogger()
+        {
+            var serviceProvider = new ServiceCollection()
+                .AddLogging(builder => builder.AddConsole())
+                .BuildServiceProvider();
+            return serviceProvider.GetRequiredService<ILogger<TimesheetProcessor>>();
         }
 
         public void Process()
         {
-            List<List<string>>? templateData;
-            List<List<string>>? timesheetData;
-
-            templateData = ParseExcelFile(_templatePath);
-            timesheetData = ParseExcelFile(_timesheetPath);
-
-            if (templateData == null)
+            try
             {
-                throw new Exception("Failed to parse template");
+                _logger.LogInformation($"Starting timesheet processing for {_yyyyMM}");
+                
+                List<List<string>>? templateData;
+                List<List<string>>? timesheetData;
+
+                _logger.LogInformation("Parsing Excel files");
+                templateData = ParseExcelFile(_templatePath);
+                timesheetData = ParseExcelFile(_timesheetPath);
+
+                if (templateData == null)
+                {
+                    _logger.LogError("Failed to parse template file");
+                    throw new Exception("Failed to parse template");
+                }
+                if (timesheetData == null)
+                {
+                    _logger.LogError("Failed to parse timesheet file");
+                    throw new Exception("Failed to parse timesheet");
+                }
+
+                _logger.LogInformation("Creating PHD template and ENA timesheet objects");
+                var phdTemplate = new PhdTemplate(_yyyyMM, templateData, _templatePath, PhdTimesheetFileName(_yyyyMM));
+                var enaTimesheet = new EnaTimesheet(_yyyyMM, timesheetData, _timesheetPath, AddRevisionToFilename(_timesheetPath));
+
+                _logger.LogInformation("Updating PHD template with ENA timesheet data");
+                phdTemplate.Update(enaTimesheet);
+
+                _logger.LogInformation("Timesheet processing completed successfully");
             }
-            if (timesheetData == null)
+            catch (Exception ex)
             {
-                throw new Exception("Failed to parse timesheet");
+                _logger.LogError(ex, "Error during timesheet processing");
+                throw;
             }
-
-            var phdTemplate = new PhdTemplate(_yyyyMM, templateData, _templatePath, PhdTimesheetFileName(_yyyyMM));
-            var enaTimesheet = new EnaTimesheet(_yyyyMM, timesheetData, _timesheetPath, AddRevisionToFilename(_timesheetPath));
-
-            phdTemplate.Update(enaTimesheet);
-
-            // ToDo: implement
-            //var xlsxBytes = phdTemplate.UpdateXlsx(0);
-            //string phdTimesheetFileName = PhdTimesheetFileName(_yyyyMM);
-
-            //File.WriteAllBytes(phdTimesheetFileName, xlsxBytes);
         }
 
         private List<List<string>> ParseExcelFile(string filePath)
