@@ -242,7 +242,9 @@ namespace EnaTsApp
                 {
                     ShowSuccess($"Template loaded: {templateData.Count} rows");
                     DisplayData(templateData, "Template Data");
-                    phdTemplate = new PhdTemplate(selectedDate.ToString("yyyyMM"), templateData);
+                    string templateFilePath = fileLocations["template"];
+                string outputFilePath = Path.Combine(Path.GetDirectoryName(templateFilePath) ?? throw new InvalidOperationException("Template file path is invalid"), $"PHD ENA Timesheet {selectedDate.ToString("yyyy-MM")}.xlsx");
+                phdTemplate = new PhdTemplate(selectedDate.ToString("yyyyMM"), templateData, templateFilePath, outputFilePath);
                 }
             }
             catch (Exception ex)
@@ -264,7 +266,9 @@ namespace EnaTsApp
                     {
                         ShowSuccess($"Timesheet loaded: {timesheetData.Count} rows");
                         DisplayData(timesheetData, "Timesheet Data");
-                        enaTimesheet = new EnaTimesheet(selectedDate, timesheetData, timesheetLogger, entryLogger);
+                        string timesheetFilePath = fileLocations["timesheet"];
+                        string outputFilePath = Path.Combine(Path.GetDirectoryName(timesheetFilePath) ?? throw new InvalidOperationException("Timesheet file path is invalid"), $"PHD ENA Timesheet {selectedDate.ToString("yyyy-MM")}.xlsx");
+                        enaTimesheet = new EnaTimesheet(selectedDate, timesheetData, timesheetLogger, entryLogger, timesheetFilePath, outputFilePath);
                     }
                 }
                 catch (Exception ex)

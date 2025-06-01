@@ -40,8 +40,8 @@ namespace Com.Ena.Timesheet
                 throw new Exception("Failed to parse timesheet");
             }
 
-            var phdTemplate = new PhdTemplate(_yyyyMM, templateData);
-            var enaTimesheet = new EnaTimesheet(_yyyyMM, timesheetData);
+            var phdTemplate = new PhdTemplate(_yyyyMM, templateData, _templatePath, PhdTimesheetFileName(_yyyyMM));
+            var enaTimesheet = new EnaTimesheet(_yyyyMM, timesheetData, _timesheetPath, PhdTimesheetFileName(_yyyyMM));
 
             phdTemplate.Update(enaTimesheet);
 

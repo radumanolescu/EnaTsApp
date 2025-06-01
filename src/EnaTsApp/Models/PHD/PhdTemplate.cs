@@ -7,27 +7,29 @@ using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using Com.Ena.Timesheet.Phd;
 using Com.Ena.Timesheet.Ena;
+using Com.Ena.Timesheet;
 
 namespace Com.Ena.Timesheet.Phd
 {
-    public class PhdTemplate
+    public class PhdTemplate : ExcelMapped
     {
         private List<PhdTemplateEntry> entries;
         private string yearMonth; // yyyyMM
-
-        public string YearMonth => yearMonth;
         private IWorkbook workbook;
 
+        public string YearMonth => yearMonth;
         public static readonly int colOffset = 1;
 
-        public PhdTemplate(string yearMonth, List<PhdTemplateEntry> entries)
+        public PhdTemplate(string yearMonth, List<PhdTemplateEntry> entries, string inputPath, string outputPath) 
+            : base(inputPath, outputPath)
         {
             this.yearMonth = yearMonth;
             this.entries = entries;
             this.workbook = new XSSFWorkbook();
         }
 
-        public PhdTemplate(string yearMonth, List<List<string>>? templateData)
+        public PhdTemplate(string yearMonth, List<List<string>>? templateData, string inputPath, string outputPath)
+            : base(inputPath, outputPath)
         {
             this.yearMonth = yearMonth;
 
