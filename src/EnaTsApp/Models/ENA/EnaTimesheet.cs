@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Text;
 using System.Collections.ObjectModel;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using Com.Ena.Timesheet;
 using NPOI.XSSF.UserModel;
 
@@ -22,9 +23,20 @@ namespace Com.Ena.Timesheet.Ena
         private readonly ILogger<EnaTimesheet> _logger;
         private readonly ILogger<EnaTsEntry> _entryLogger;
 
+        private static readonly IServiceProvider _serviceProvider = new ServiceCollection()
+            .AddLogging(builder => builder.AddConsole())
+            .BuildServiceProvider();
+
+        private static ILogger<T> GetLogger<T>()
+        {
+            return _serviceProvider.GetRequiredService<ILogger<T>>();
+        }
+
         public EnaTimesheet(string yyyyMM, List<List<string>> timesheetData, string inputPath, string outputPath)
             : base(inputPath, outputPath)
         {
+            _logger = GetLogger<EnaTimesheet>();
+            _entryLogger = GetLogger<EnaTsEntry>();
             this.timesheetMonth = DateTime.ParseExact(yyyyMM, "yyyyMM", CultureInfo.InvariantCulture);
             this.xlsxBytes = CreateXlsxFromData(timesheetData);
         }
@@ -56,11 +68,11 @@ namespace Com.Ena.Timesheet.Ena
             return ms.ToArray();
         }
 
-        public EnaTimesheet(DateTime timesheetMonth, Stream inputStream, ILogger<EnaTimesheet> logger, ILogger<EnaTsEntry> entryLogger, string inputPath, string outputPath)
+        public EnaTimesheet(DateTime timesheetMonth, Stream inputStream, string inputPath, string outputPath)
             : base(inputPath, outputPath)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _entryLogger = entryLogger ?? throw new ArgumentNullException(nameof(entryLogger));
+            _logger = GetLogger<EnaTimesheet>();
+            _entryLogger = GetLogger<EnaTsEntry>();
             this.timesheetMonth = timesheetMonth;
             this.xlsxBytes = GetBytes(inputStream);
             using (var ms = new MemoryStream(this.xlsxBytes))
@@ -69,11 +81,11 @@ namespace Com.Ena.Timesheet.Ena
             }
         }
 
-        public EnaTimesheet(DateTime timesheetMonth, FileInfo enaTimesheetFile, ILogger<EnaTimesheet> logger, ILogger<EnaTsEntry> entryLogger, string inputPath, string outputPath)
+        public EnaTimesheet(DateTime timesheetMonth, FileInfo enaTimesheetFile, string inputPath, string outputPath)
             : base(inputPath, outputPath)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _entryLogger = entryLogger ?? throw new ArgumentNullException(nameof(entryLogger));
+            _logger = GetLogger<EnaTimesheet>();
+            _entryLogger = GetLogger<EnaTsEntry>();
             this.timesheetMonth = timesheetMonth;
             using (var fs = enaTimesheetFile.OpenRead())
             {
@@ -85,11 +97,11 @@ namespace Com.Ena.Timesheet.Ena
             }
         }
 
-        public EnaTimesheet(DateTime timesheetMonth, byte[] fileBytes, ILogger<EnaTimesheet> logger, ILogger<EnaTsEntry> entryLogger, string inputPath, string outputPath)
+        public EnaTimesheet(DateTime timesheetMonth, byte[] fileBytes, string inputPath, string outputPath)
             : base(inputPath, outputPath)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _entryLogger = entryLogger ?? throw new ArgumentNullException(nameof(entryLogger));
+            _logger = GetLogger<EnaTimesheet>();
+            _entryLogger = GetLogger<EnaTsEntry>();
             this.timesheetMonth = timesheetMonth;
             this.xlsxBytes = fileBytes;
             using (var ms = new MemoryStream(this.xlsxBytes))
@@ -98,19 +110,11 @@ namespace Com.Ena.Timesheet.Ena
             }
         }
 
-        public EnaTimesheet(DateTime timesheetMonth, List<List<string>> timesheetData, ILogger<EnaTimesheet> logger, ILogger<EnaTsEntry> entryLogger, string inputPath, string outputPath)
+        public EnaTimesheet(DateTime timesheetMonth, List<List<string>> timesheetData, string inputPath, string outputPath)
             : base(inputPath, outputPath)
         {
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-            if (entryLogger == null)
-            {
-                throw new ArgumentNullException(nameof(entryLogger));
-            }
-            _logger = logger;
-            _entryLogger = entryLogger;
+            _logger = GetLogger<EnaTimesheet>();
+            _entryLogger = GetLogger<EnaTsEntry>();
             this.timesheetMonth = timesheetMonth;
             this.enaTsEntries = new List<EnaTsEntry>();
             xlsxBytes = null;
@@ -119,7 +123,8 @@ namespace Com.Ena.Timesheet.Ena
             if (timesheetData != null)
             {
                 for (int i = 0; i < timesheetData.Count; i++)
-                {                    var entry = new EnaTsEntry(i, timesheetMonth, timesheetData[i], _entryLogger);
+                {
+                    var entry = new EnaTsEntry(i, timesheetMonth, timesheetData[i], _entryLogger);
                     this.enaTsEntries.Add(entry);
                 }
             }

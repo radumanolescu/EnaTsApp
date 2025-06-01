@@ -268,7 +268,7 @@ namespace EnaTsApp
                         DisplayData(timesheetData, "Timesheet Data");
                         string timesheetFilePath = fileLocations["timesheet"];
                         string outputFilePath = Path.Combine(Path.GetDirectoryName(timesheetFilePath) ?? throw new InvalidOperationException("Timesheet file path is invalid"), $"PHD ENA Timesheet {selectedDate.ToString("yyyy-MM")}.xlsx");
-                        enaTimesheet = new EnaTimesheet(selectedDate, timesheetData, timesheetLogger, entryLogger, timesheetFilePath, outputFilePath);
+                        enaTimesheet = new EnaTimesheet(selectedDate, timesheetData, timesheetFilePath, outputFilePath);
                     }
                 }
                 catch (Exception ex)
