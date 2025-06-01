@@ -8,14 +8,26 @@ using NPOI.XSSF.UserModel;
 using Com.Ena.Timesheet.Phd;
 using Com.Ena.Timesheet.Ena;
 using Com.Ena.Timesheet;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Com.Ena.Timesheet.Phd
 {
     public class PhdTemplate : ExcelMapped
     {
+        private readonly ILogger<PhdTemplate> _logger;
         private List<PhdTemplateEntry> entries;
         private string yearMonth; // yyyyMM
         private IWorkbook workbook;
+
+        private static readonly IServiceProvider _serviceProvider = new ServiceCollection()
+            .AddLogging(builder => builder.AddConsole())
+            .BuildServiceProvider();
+
+        private static ILogger<T> GetLogger<T>()
+        {
+            return _serviceProvider.GetRequiredService<ILogger<T>>();
+        }
 
         public string YearMonth => yearMonth;
         public static readonly int colOffset = 1;
@@ -23,6 +35,8 @@ namespace Com.Ena.Timesheet.Phd
         public PhdTemplate(string yearMonth, List<PhdTemplateEntry> entries, string inputPath, string outputPath) 
             : base(inputPath, outputPath)
         {
+            _logger = GetLogger<PhdTemplate>();
+            _logger.LogInformation($"Creating PhdTemplate for {yearMonth}");
             this.yearMonth = yearMonth;
             this.entries = entries;
             this.workbook = new XSSFWorkbook();
@@ -31,6 +45,8 @@ namespace Com.Ena.Timesheet.Phd
         public PhdTemplate(string yearMonth, List<List<string>>? templateData, string inputPath, string outputPath)
             : base(inputPath, outputPath)
         {
+            _logger = GetLogger<PhdTemplate>();
+            _logger.LogInformation($"Creating PhdTemplate from data for {yearMonth}");
             this.yearMonth = yearMonth;
 
             this.entries = new List<PhdTemplateEntry>();
