@@ -107,37 +107,29 @@ namespace Com.Ena.Timesheet.Phd
             return entries.Sum(entry => entry.TotalHours());
         }
 
-
-
+        /// <summary>
+        /// Updates this PHD template's entries with data from the ENA timesheet.
+        /// 
+        /// This method performs the following steps:
+        /// 1. Validates that all ENA tasks exist in the PHD template
+        /// 2. Maps hours from ENA timesheet to corresponding PHD template entries
+        /// 3. Verifies that total hours match between ENA and PHD
+        /// </summary>
+        /// <param name="enaTimesheet">The ENA timesheet containing hours to update</param>
+        /// <exception cref="Exception">Thrown if:
+        ///     - Any ENA task is not found in the PHD template
+        ///     - Total hours mismatch between ENA and PHD after update
+        /// </exception>
         public void Update(EnaTimesheet enaTimesheet)
         {
             CheckTasks(enaTimesheet);
-            var enaEffort = enaTimesheet.TotalHoursByClientTaskDay();
-            foreach (var entry in entries)
-            {
-                if (entry.Day.HasValue)
-                {
-                    if (enaEffort.TryGetValue(entry.ClientHashTask(), out var enaEntry))
-                    {
-                        var effort = new Dictionary<int, double>();
-                        foreach (var dayEffort in enaEntry)
-                        {
-                            effort[dayEffort.Key] = dayEffort.Value;
-                        }
-                        entry.SetEffort(effort);
-                    }
-                }
-            }
-            foreach (var phdEntry in entries)
+            var enaEffort = enaTimesheet.TotalHoursByClientTaskDay(); // Dictionary<string, Dictionary<int, double>>
+            foreach (var phdEntry in entries) // PhdTemplateEntry phdEntry
             {
                 if (enaEffort.TryGetValue(phdEntry.ClientHashTask(), out var enaEntry))
                 {
-                    var effort = new Dictionary<int, double>();
-                    foreach (var dayEffort in enaEntry)
-                    {
-                        effort[dayEffort.Key] = dayEffort.Value;
-                    }
-                    phdEntry.SetEffort(effort);
+                    // Dictionary<int, double> enaEntry contains (day -> hours) for one client task
+                    phdEntry.SetEffort(enaEntry);
                 }
             }
             double enaTotalHours = enaTimesheet.TotalHours();
