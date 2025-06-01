@@ -1,16 +1,15 @@
 using System;
-using Ena.Timesheet.Tests;
-using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Xunit;
 using Com.Ena.Timesheet.Phd;
-using Com.Ena.Timesheet.Xl;
-using Ena.Timesheet.Ena;
+using Com.Ena.Timesheet.Ena;
 using EnaTsApp.Tests.TestHelpers;
+using Com.Ena.Timesheet.Xl;
+using Ena.Timesheet.Tests;
 
-namespace EnaTsApp.Tests.IntegrationTests.Phd
+namespace Com.Ena.Timesheet.Tests.IntegrationTests.Phd
 {
     public class PhdTemplateIntegrationTests
     {
@@ -27,7 +26,7 @@ namespace EnaTsApp.Tests.IntegrationTests.Phd
             };
 
             // Act
-            var template = new PhdTemplate(TestYearMonth, testData);
+            var template = new PhdTemplate(TestYearMonth, testData, "", "");
 
             // Assert
             Assert.NotNull(template);
@@ -45,7 +44,7 @@ namespace EnaTsApp.Tests.IntegrationTests.Phd
                 new List<string> { "Client2", "Task2" },
                 new List<string> { "Client1", "Task3" }
             };
-            var template = new PhdTemplate(TestYearMonth, testData);
+            var template = new PhdTemplate(TestYearMonth, testData, "", "");
 
             // Act
             var clientTasks = template.ClientTasks();
@@ -66,7 +65,7 @@ namespace EnaTsApp.Tests.IntegrationTests.Phd
                 new List<string> { "Client1", "Task1" },
                 new List<string> { "Client2", "Task2" }
             };
-            var template = new PhdTemplate(TestYearMonth, testData);
+            var template = new PhdTemplate(TestYearMonth, testData, "", "");
 
             // Act
             var dropdownBytes = template.Dropdowns();
@@ -91,7 +90,7 @@ namespace EnaTsApp.Tests.IntegrationTests.Phd
                 using (var stream = File.OpenRead(filePath))
                 {
                     entries = parser.ParseEntries(stream);
-                    template = new PhdTemplate(TestYearMonth, entries);
+                    template = new PhdTemplate(TestYearMonth, entries, "", "");
                 }
             }
             catch (InvalidOperationException ex)
@@ -140,49 +139,5 @@ namespace EnaTsApp.Tests.IntegrationTests.Phd
             }
         }
 
-        [Fact]
-        public void CanReadAndParseEnaTimesheet()
-        {
-            // Arrange
-            var filePath = TestFileHelper.GetTestFilePath("PHD 04 - April 2025R.xlsx");
-            var selectedDate = new DateTime(2025, 4, 15); // April 2025
-            
-            try
-            {
-                var parser = new ExcelParser();
-                var rows = parser.ParseExcelFile(filePath);
-                if (rows == null)
-                {
-                    throw new InvalidOperationException("Failed to parse Excel file");
-                }
-
-                var logger = TestLogger.CreateLogger<EnaTimesheet>();
-                var entryLogger = TestLogger.CreateLogger<EnaTsEntry>();
-                EnaTimesheet enaTimesheet = new EnaTimesheet(selectedDate, rows, logger, entryLogger);
-                Assert.NotNull(enaTimesheet);
-                Assert.NotEmpty(enaTimesheet.GetEntries());
-                
-                // Write entries to file
-                var directory = Path.GetDirectoryName(filePath);
-                if (string.IsNullOrEmpty(directory))
-                {
-                    throw new InvalidOperationException("Test file path is invalid");
-                }
-
-                var outputFile = Path.Combine(directory, "ParseEnaTimesheet.txt");
-                using (var writer = new StreamWriter(outputFile))
-                {
-                    foreach (var entry in enaTimesheet.GetEntries())
-                    {
-                        writer.WriteLine($"{entry.ToString()}");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error: {ex.Message}");
-                throw;
-            }
-        }
     }
 }

@@ -38,7 +38,24 @@ namespace Com.Ena.Timesheet.Ena
             _logger = GetLogger<EnaTimesheet>();
             _entryLogger = GetLogger<EnaTsEntry>();
             this.timesheetMonth = DateTime.ParseExact(yyyyMM, "yyyyMM", CultureInfo.InvariantCulture);
-            this.xlsxBytes = CreateXlsxFromData(timesheetData);
+            populateFromData(yyyyMM, timesheetData);
+        }
+
+        private void populateFromData(string yyyyMM, List<List<string>> timesheetData)
+        {
+            _logger.LogInformation($"Populating timesheet entries for {yyyyMM}");
+            
+            // Skip header row
+            for (int i = 1; i < timesheetData.Count; i++)
+            {
+                var row = timesheetData[i];
+                if (row.Count > 0)
+                {
+                    var entry = new EnaTsEntry(i, timesheetMonth, row);
+                    enaTsEntries.Add(entry);
+                    _logger.LogInformation($"Added entry for row {i}: {entry.ProjectActivity()}");
+                }
+            }
         }
 
         private byte[] CreateXlsxFromData(List<List<string>> timesheetData)

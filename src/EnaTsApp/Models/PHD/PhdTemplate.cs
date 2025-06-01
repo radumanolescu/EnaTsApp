@@ -32,6 +32,18 @@ namespace Com.Ena.Timesheet.Phd
         }
 
         public string YearMonth => yearMonth;
+        /*
+            In OfficeOpenXml, the row and column indexes are 1-based:
+
+            Row indexes: Start from 1 (not 0)
+            Column indexes: Start from 1 (not 0)
+            For example:
+
+            First row is row 1
+            First column is column 1
+            Cell A1 is accessed as (1, 1)
+            Cell B2 is accessed as (2, 2)
+        */
         public static readonly int colOffset = 1;
 
         public PhdTemplate(string yearMonth, List<PhdTemplateEntry> entries, string inputPath, string outputPath) 
@@ -183,7 +195,7 @@ namespace Com.Ena.Timesheet.Phd
                 }
 
                 // Clear existing effort cells
-                EraseEffort(entry.RowNum, row);
+                EraseEffort(entry.RowNum + 1, row);
 
                 // Set new effort values
                 foreach (var dayEffort in entry.GetEffort())
