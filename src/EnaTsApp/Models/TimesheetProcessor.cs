@@ -82,6 +82,24 @@ namespace Com.Ena.Timesheet
             // e.g. "PHD ENA Timesheet 2023-03.xlsx"
             return "PHD ENA Timesheet " + yyyyMM.Substring(0, 4) + "-" + yyyyMM.Substring(4, 2) + ".xlsx";
         }
+
+        /// <summary>
+        /// Adds 'R' before the extension in an Excel filename.
+        /// For example, "PHD 04 - April 2025.xlsx" becomes "PHD 04 - April 2025R.xlsx"
+        /// </summary>
+        public static string AddRevisionToFilename(string filename)
+        {
+            if (string.IsNullOrEmpty(filename))
+                throw new ArgumentException("Filename cannot be null or empty", nameof(filename));
+
+            string extension = Path.GetExtension(filename);
+            if (string.IsNullOrEmpty(extension))
+                throw new ArgumentException("Filename must have an extension", nameof(filename));
+
+            string baseName = Path.GetFileNameWithoutExtension(filename);
+            return $"{baseName}R{extension}";
+        }
+
     }
 }
 
