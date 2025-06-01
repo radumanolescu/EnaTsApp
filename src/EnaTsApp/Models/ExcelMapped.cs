@@ -8,7 +8,7 @@ namespace Com.Ena.Timesheet
     {
         private readonly string _inputPath;
         private readonly string _outputPath;
-        private readonly ExcelPackage _excelPackage;
+        protected readonly ExcelPackage _excelPackage;
 
         public ExcelMapped(string inputPath, string outputPath)
         {

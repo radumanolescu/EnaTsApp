@@ -10,6 +10,7 @@ using Com.Ena.Timesheet.Ena;
 using Com.Ena.Timesheet;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using OfficeOpenXml;
 
 namespace Com.Ena.Timesheet.Phd
 {
@@ -19,6 +20,7 @@ namespace Com.Ena.Timesheet.Phd
         private List<PhdTemplateEntry> entries;
         private string yearMonth; // yyyyMM
         private IWorkbook workbook;
+        private ExcelWorksheet worksheet;
 
         private static readonly IServiceProvider _serviceProvider = new ServiceCollection()
             .AddLogging(builder => builder.AddConsole())
@@ -39,7 +41,8 @@ namespace Com.Ena.Timesheet.Phd
             _logger.LogInformation($"Creating PhdTemplate for {yearMonth}");
             this.yearMonth = yearMonth;
             this.entries = entries;
-            this.workbook = new XSSFWorkbook();
+            workbook = WorkbookFactory.Create(inputPath);
+            worksheet = _excelPackage.Workbook.Worksheets[0];
         }
 
         public PhdTemplate(string yearMonth, List<List<string>>? templateData, string inputPath, string outputPath)
@@ -139,7 +142,7 @@ namespace Com.Ena.Timesheet.Phd
                 PrintEntries();
                 throw new Exception($"Total hours mismatch: ENA={enaTotalHours} PHD={phdTotalHours}");
             }
-            UpdateXlsx(0);
+            UpdateExcelPackage();
         }
 
         private void PrintEntries()
@@ -163,48 +166,46 @@ namespace Com.Ena.Timesheet.Phd
             }
         }
 
-        // ToDo: fix this
-        public void UpdateXlsx(int index)
+        /// <summary>
+        /// Updates the ExcelPackage with data from PhdTemplateEntry objects.
+        /// </summary>
+        public void UpdateExcelPackage()
         {
-            using (var inputStream = new MemoryStream())
+            var worksheet = _excelPackage.Workbook.Worksheets[0];
+            
+            foreach (var entry in entries)
             {
-                IWorkbook workbook = WorkbookFactory.Create(inputStream);
-                ISheet sheet = workbook.GetSheetAt(index);
-                int rowId = 0;
-                int numEntries = entries.Count;
-                foreach (IRow row in sheet)
+                var row = worksheet.Row(entry.RowNum + 1); // +1 because Excel is 1-based
+                if (row == null)
                 {
-                    if (rowId >= numEntries) break;
-                    EraseEffort(rowId, row);
-                    var entry = entries[rowId];
-                    foreach (var dayEffort in entry.GetEffort())
-                    {
-                        int day = dayEffort.Key;
-                        double effort = dayEffort.Value;
-                        ICell cell = row.GetCell(colOffset + day) ?? row.CreateCell(colOffset + day);
-                        cell.SetCellValue(effort);
-                    }
+                    _logger.LogWarning($"Row {entry.RowNum + 1} not found in worksheet");
+                    continue;
                 }
-                workbook.GetCreationHelper().CreateFormulaEvaluator().EvaluateAll();
-                workbook.Write(inputStream);
+
+                // Clear existing effort cells
+                EraseEffort(entry.RowNum, row);
+
+                // Set new effort values
+                foreach (var dayEffort in entry.GetEffort())
+                {
+                    int day = dayEffort.Key;
+                    double effort = dayEffort.Value;
+                    var cell = worksheet.Cells[row.Row, colOffset + day];
+                    cell.Value = effort;
+                }
             }
+
+            // Recalculate formulas
+            _excelPackage.Workbook.Calculate();
         }
 
-        // Erase the effort for the row
-        private void EraseEffort(int rowId, IRow row)
+        private void EraseEffort(int rowNum, ExcelRow row)
         {
-            // Skip the first row (header)
-            if (rowId > 0)
+            // Clear all cells from colOffset to the end of the row
+            for (int col = colOffset; col < 31; col++) // Clear up to 31 days
             {
-                // Erase the row to make sure we don't have any old data
-                for (int colId = colOffset + 1; colId <= colOffset + 31; colId++)
-                {
-                    ICell cell = row.GetCell(colId);
-                    if (cell != null)
-                    {
-                        cell.SetCellType(CellType.Blank);
-                    }
-                }
+                var cell = worksheet.Cells[row.Row, colOffset + col];
+                cell.Value = null;
             }
         }
 
