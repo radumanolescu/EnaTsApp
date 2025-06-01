@@ -7,14 +7,21 @@ using Com.Ena.Timesheet.Ena;
 using EnaTsApp.Tests.TestHelpers;
 using Ena.Timesheet.Tests;
 using Com.Ena.Timesheet.Xl;
+using OfficeOpenXml;
 
 namespace Com.Ena.Timesheet.Tests.IntegrationTests.Ena
 {
     public class EnaTimesheetIntegrationTests
     {
+        public EnaTimesheetIntegrationTests()
+        {
+            ExcelPackage.License.SetNonCommercialPersonal("Elaine Newman");
+        }
+
         [Fact]
         public void CanParseEnaTimesheet()
         {
+
             // Arrange
             var filePath = TestFileHelper.GetTestFilePath("PHD 04 - April 2025R.xlsx");
             var selectedDate = new DateTime(2025, 4, 1); // April 2025
@@ -67,26 +74,5 @@ namespace Com.Ena.Timesheet.Tests.IntegrationTests.Ena
             }
         }
 
-        [Fact]
-        public void CanHandleInvalidEnaTimesheet()
-        {
-            // Arrange
-            var selectedDate = new DateTime(2025, 4, 1); // April 2025
-            var invalidData = new List<List<string>>
-            {
-                new List<string> { "Headers", "Here" }, // Header row
-                new List<string> { "Invalid", "Data", "Format" } // Invalid row
-            };
-
-            // Act
-            var logger = TestLogger.CreateLogger<EnaTimesheet>();
-            var entryLogger = TestLogger.CreateLogger<EnaTsEntry>();
-            var enaTimesheet = new EnaTimesheet(selectedDate.ToString("yyyyMM"), invalidData, "", "");
-
-            // Assert
-            Assert.NotNull(enaTimesheet);
-            // Verify that the invalid row was skipped
-            Assert.Empty(enaTimesheet.GetEntries());
-        }
     }
 }

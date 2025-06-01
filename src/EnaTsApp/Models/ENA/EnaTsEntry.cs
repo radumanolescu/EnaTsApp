@@ -202,16 +202,56 @@ namespace Com.Ena.Timesheet.Ena
         }
 
         public DateTime Month => month;
-        public string ProjectId { get; set; } = "";
-        public string Activity { get; set; } = "";
-        public int? Day { get; set; }
-        public TimeSpan? Start { get; set; }
-        public TimeSpan? End { get; set; }
-        public float? Hours { get; set; }
-        public DateTime? Date => date;
-        public string Description { get; set; } = "";
-        public float? Charge { get; set; }
-        public string Error { get; set; } = "";
+        public string ProjectId 
+        { 
+            get => projectId;
+            set => projectId = value;
+        }
+        public string Activity 
+        { 
+            get => activity;
+            set => activity = value;
+        }
+        public int? Day 
+        { 
+            get => day;
+            set => day = value;
+        }
+        public TimeSpan? Start 
+        { 
+            get => start;
+            set => start = value;
+        }
+        public TimeSpan? End 
+        { 
+            get => end;
+            set => end = value;
+        }
+        public float? Hours 
+        { 
+            get => hours;
+            set => hours = value;
+        }
+        public DateTime Date 
+        { 
+            get => date;
+            set => date = value;
+        }
+        public string Description 
+        { 
+            get => description;
+            set => description = value;
+        }
+        public float? Charge 
+        { 
+            get => charge;
+            set => charge = value;
+        }
+        public string Error 
+        { 
+            get => error;
+            set => error = value;
+        }
 
         public void SetError(string error)
         {

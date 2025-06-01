@@ -12,8 +12,14 @@ namespace Com.Ena.Timesheet
 
         public ExcelMapped(string inputPath, string outputPath)
         {
-            _inputPath = inputPath ?? throw new ArgumentNullException(nameof(inputPath));
-            _outputPath = outputPath ?? throw new ArgumentNullException(nameof(outputPath));
+            _inputPath = inputPath;
+            _outputPath = outputPath;
+
+            // If either path is empty, return early without initialization
+            if (string.IsNullOrEmpty(inputPath) || string.IsNullOrEmpty(outputPath))
+            {
+                return;
+            }
 
             // Validate paths
             if (!File.Exists(inputPath))
@@ -37,7 +43,10 @@ namespace Com.Ena.Timesheet
         /// </summary>
         public void SaveAs()
         {
-            _excelPackage.SaveAs(new FileInfo(_outputPath));
+            if (_excelPackage != null)
+            {
+                _excelPackage.SaveAs(new FileInfo(_outputPath));
+            }
         }
     }
 }

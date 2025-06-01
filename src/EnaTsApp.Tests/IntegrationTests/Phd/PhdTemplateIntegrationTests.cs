@@ -1,18 +1,25 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Xunit;
 using Com.Ena.Timesheet.Phd;
-using Com.Ena.Timesheet.Ena;
 using EnaTsApp.Tests.TestHelpers;
 using Com.Ena.Timesheet.Xl;
+using OfficeOpenXml;
 using Ena.Timesheet.Tests;
 
 namespace Com.Ena.Timesheet.Tests.IntegrationTests.Phd
 {
     public class PhdTemplateIntegrationTests
     {
+        public PhdTemplateIntegrationTests()
+        {
+            ExcelPackage.License.SetNonCommercialPersonal("Elaine Newman");
+        }
+
         private const string TestYearMonth = "202505";
 
         [Fact]
@@ -81,61 +88,36 @@ namespace Com.Ena.Timesheet.Tests.IntegrationTests.Phd
         {
             // Arrange
             var filePath = TestFileHelper.GetTestFilePath("PHD Blank Timesheet April 2025.xlsx");
-            var parser = new Parser();
-            List<PhdTemplateEntry> entries = new List<PhdTemplateEntry>();
-            PhdTemplate template = null;
-            
-            try
+            var parser = new ExcelParser();
+            List<List<string>> entries = parser.ParseExcelFile(filePath);
+            PhdTemplate template = new PhdTemplate(TestYearMonth, entries, filePath, filePath);
+
+            // Assert
+            Assert.NotNull(template);
+            Assert.NotEmpty(template.GetEntries());
+
+            // Write entries to file
+            var directory = Path.GetDirectoryName(filePath);
+            if (string.IsNullOrEmpty(directory))
             {
-                using (var stream = File.OpenRead(filePath))
-                {
-                    entries = parser.ParseEntries(stream);
-                    template = new PhdTemplate(TestYearMonth, entries, "", "");
-                }
-            }
-            catch (InvalidOperationException ex)
-            {
-                // This is expected since the test file has duplicate client-task entries
-                Console.WriteLine($"Expected error: {ex.Message}");
-                Assert.Contains("Duplicate client-task", ex.Message);
-                return;
+                throw new InvalidOperationException("Test file path is invalid");
             }
 
-            try
+            var outputFile = Path.Combine(directory, "ParsePhdTemplate.txt");
+            using (var writer = new StreamWriter(outputFile))
             {
-                // Assert
-                Assert.NotNull(template);
-                Assert.NotEmpty(entries);
-
-                // Write entries to file
-                var directory = Path.GetDirectoryName(filePath);
-                if (string.IsNullOrEmpty(directory))
+                foreach (var entry in template.GetEntries())
                 {
-                    throw new InvalidOperationException("Test file path is invalid");
-                }
-
-                var outputFile = Path.Combine(directory, "ParsePhdTemplate.txt");
-                using (var writer = new StreamWriter(outputFile))
-                {
-                    foreach (var entry in entries)
+                    writer.WriteLine($"Entry - Row: {entry.GetRowNum() + 1}, Client: '{entry.GetClient()}', Task: '{entry.GetTask()}'");
+                    var effortDict = entry.GetEffort();
+                    if (effortDict != null)
                     {
-                        writer.WriteLine($"Entry - Row: {entry.GetRowNum() + 1}, Client: '{entry.GetClient()}', Task: '{entry.GetTask()}'");
-                        var effortDict = entry.GetEffort();
-                        if (effortDict != null)
+                        foreach (var effort in effortDict)
                         {
-                            foreach (var effort in effortDict)
-                            {
-                                writer.WriteLine($"  Day: {effort.Key}, Effort: {effort.Value}");
-                            }
+                            writer.WriteLine($"  Day: {effort.Key}, Effort: {effort.Value}");
                         }
                     }
                 }
-            }
-            catch (InvalidOperationException ex)
-            {
-                // This is expected since the test file has duplicate client-task entries
-                Console.WriteLine($"Expected error: {ex.Message}");
-                Assert.Contains("Duplicate client-task", ex.Message);
             }
         }
 

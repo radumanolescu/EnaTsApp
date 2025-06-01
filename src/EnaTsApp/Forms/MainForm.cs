@@ -243,8 +243,8 @@ namespace EnaTsApp
                     ShowSuccess($"Template loaded: {templateData.Count} rows");
                     DisplayData(templateData, "Template Data");
                     string templateFilePath = fileLocations["template"];
-                string outputFilePath = Path.Combine(Path.GetDirectoryName(templateFilePath) ?? throw new InvalidOperationException("Template file path is invalid"), $"PHD ENA Timesheet {selectedDate.ToString("yyyy-MM")}.xlsx");
-                phdTemplate = new PhdTemplate(selectedDate.ToString("yyyyMM"), templateData, templateFilePath, outputFilePath);
+                    string outputFilePath = Path.Combine(Path.GetDirectoryName(templateFilePath) ?? throw new InvalidOperationException("Template file path is invalid"), $"PHD ENA Timesheet {selectedDate.ToString("yyyy-MM")}.xlsx");
+                    phdTemplate = new PhdTemplate(selectedDate.ToString("yyyyMM"), templateData, templateFilePath, outputFilePath);
                 }
             }
             catch (Exception ex)
