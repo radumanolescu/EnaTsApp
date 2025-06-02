@@ -85,7 +85,7 @@ namespace Com.Ena.Timesheet.Phd
         /// Once the project code is set for all entries, check that there are no duplicate client-task pairs.
         /// Such errors have been observed in the past, and they are likely to be caused by manual errors in the template.
         /// </summary>
-        private void CheckDupClientTask(List<PhdTemplateEntry> entries)
+        public static void CheckDupClientTask(List<PhdTemplateEntry> entries)
         {
             var clientTaskSet = new HashSet<string>();
             foreach (var entry in entries)
@@ -111,7 +111,7 @@ namespace Com.Ena.Timesheet.Phd
         /// Inside each group, the project code is the first non-empty value in the "Client" field (iterating from end to start).
         /// Once the project code is found, set it (the client property) for all the entries in the group.
         /// </summary>
-        public void SetProjectCodes(List<PhdTemplateEntry> entries)
+        public static void SetProjectCodes(List<PhdTemplateEntry> entries)
         {
             string projectCde = "";
             int projectBgn = -1;
@@ -163,7 +163,7 @@ namespace Com.Ena.Timesheet.Phd
                         }
                         break;
                     default:
-                        throw new InvalidOperationException("Unexpected value: " + entryType);
+                        throw new InvalidOperationException($"Unexpected entry type at row {lineNum + 1}: {entries[lineNum].ClientCommaTask()} of type {entryType}");
                 }
                 if (lineNum == 0)
                 {
@@ -174,7 +174,7 @@ namespace Com.Ena.Timesheet.Phd
             }
         }
 
-        private void P(PhdTemplateEntry w, string pC, int pB, int pE)
+        private static void P(PhdTemplateEntry w, string pC, int pB, int pE)
         {
             string ws = w.ToJson();
             int xl = w.GetRowNum() + 1;
@@ -182,7 +182,7 @@ namespace Com.Ena.Timesheet.Phd
             Console.WriteLine(ws + "\t\t" + ps);
         }
 
-        private void S(string pC, int pB, int pE, List<PhdTemplateEntry> entries)
+        private static void S(string pC, int pB, int pE, List<PhdTemplateEntry> entries)
         {
             if (string.IsNullOrEmpty(pC) || pB < 0 || pE < 0)
             {

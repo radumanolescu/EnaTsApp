@@ -67,9 +67,15 @@ namespace Com.Ena.Timesheet.Phd
             this.entries = new List<PhdTemplateEntry>();
             for (int i = 0; i < templateData.Count; i++)
             {
-                var entry = new PhdTemplateEntry(i, templateData[i][0], templateData[i][1]);
+                string client = templateData[i][0];
+                if (client == "SUM")
+                    break;
+                string task = templateData[i][1];
+                var entry = new PhdTemplateEntry(i, client, task);
                 this.entries.Add(entry);
             }
+            Parser.SetProjectCodes(entries);
+            Parser.CheckDupClientTask(entries);
         }
 
         public List<PhdTemplateEntry> GetEntries()
@@ -195,7 +201,7 @@ namespace Com.Ena.Timesheet.Phd
                 }
 
                 // Clear existing effort cells
-                EraseEffort(entry.RowNum + 1, row);
+                EraseEffort(worksheet, entry.RowNum + 1, row);
 
                 // Set new effort values
                 foreach (var dayEffort in entry.GetEffort())
@@ -211,26 +217,13 @@ namespace Com.Ena.Timesheet.Phd
             _excelPackage.Workbook.Calculate();
         }
 
-        private void EraseEffort(int rowNum, ExcelRow row)
+        private void EraseEffort(ExcelWorksheet worksheet, int rowNum, ExcelRow row)
         {
             // Clear all cells from colOffset to the end of the row
-            for (int col = colOffset; col < 31; col++) // Clear up to 31 days
+            for (int col = 1 + colOffset; col <= 31 + colOffset; col++) // Clear up to 31 days
             {
-                var cell = worksheet.Cells[row.Row, colOffset + col];
+                var cell = worksheet.Cells[row.Row, col];
                 cell.Value = null;
-            }
-        }
-
-        public void WriteFile(FileInfo output)
-        {
-            if (workbook == null)
-            {
-                workbook = new XSSFWorkbook();
-            }
-            
-            using (var outputStream = new FileStream(output.FullName, FileMode.Create))
-            {
-                workbook.Write(outputStream);
             }
         }
     }

@@ -37,6 +37,13 @@ namespace Com.Ena.Timesheet
             return serviceProvider.GetRequiredService<ILogger<TimesheetProcessor>>();
         }
 
+        private static string GetDownloadsDirectory()
+        {
+            //return Environment.GetFolderPath(Environment.KnownFolders.Downloads);
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
+            //return KnownFolders.GetPath(KnownFolder.Downloads);
+        }
+
         public void Process()
         {
             try
@@ -62,17 +69,46 @@ namespace Com.Ena.Timesheet
                 }
 
                 _logger.LogInformation("Creating PHD template and ENA timesheet objects");
-                var phdTemplate = new PhdTemplate(_yyyyMM, templateData, _templatePath, PhdTimesheetFileName(_yyyyMM));
-                var enaTimesheet = new EnaTimesheet(_yyyyMM, timesheetData, _timesheetPath, AddRevisionToFilename(_timesheetPath));
+                var phdTemplate = new PhdTemplate(_yyyyMM, templateData, _templatePath, GetTemplateOutputPath());
+                var enaTimesheet = new EnaTimesheet(_yyyyMM, timesheetData, _timesheetPath, GetTimesheetOutputPath());
 
                 _logger.LogInformation("Updating PHD template with ENA timesheet data");
+                WriteDropdowns(phdTemplate);
                 phdTemplate.Update(enaTimesheet);
+                phdTemplate.SaveAs();
 
                 _logger.LogInformation("Timesheet processing completed successfully");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during timesheet processing");
+                throw;
+            }
+        }
+
+        public string GetTemplateOutputPath()
+        {
+            return Path.Combine(GetDownloadsDirectory(), PhdTimesheetFileName(_yyyyMM));
+        }
+
+        public string GetTimesheetOutputPath()
+        {
+            return Path.Combine(GetDownloadsDirectory(), AddRevisionToFilename(Path.GetFileName(_timesheetPath)));
+        }
+
+        public void WriteDropdowns(PhdTemplate phdTemplate)
+        {
+            try
+            {
+                _logger.LogInformation("Writing client tasks to Dropdowns.txt");
+                var dropdownsPath = Path.Combine(Path.GetDirectoryName(_templatePath) ?? throw new InvalidOperationException("Invalid template path"), "Dropdowns.txt");
+                var tasks = phdTemplate.ClientTasks();
+                File.WriteAllLines(dropdownsPath, tasks);
+                _logger.LogInformation($"Client tasks written to {dropdownsPath}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error writing client tasks to file");
                 throw;
             }
         }
