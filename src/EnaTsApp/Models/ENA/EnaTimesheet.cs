@@ -338,7 +338,26 @@ namespace Com.Ena.Timesheet.Ena
             // Use a string similarity algorithm, e.g., Jaro-Winkler or Levenshtein
             // For now, return the first entry as a stub
             // You can use the F23.StringSimilarity or SimMetrics.Net NuGet packages for real implementation
+            // TODO: implement string similarity algorithm
             return clientTaskSet.FirstOrDefault() ?? "";
+        }
+
+        /// <summary>
+        /// Adds 'R' before the extension in an Excel filename.
+        /// For example, "PHD 04 - April 2025.xlsx" becomes "PHD 04 - April 2025R.xlsx"
+        /// </summary>
+        /// <param name="filename">The input filename to modify. Must be a non-empty string with an extension.</param>
+        public static string AddRevisionToFilename(string filename)
+        {
+            if (string.IsNullOrEmpty(filename))
+                throw new ArgumentException("Filename cannot be null or empty", nameof(filename));
+
+            string extension = Path.GetExtension(filename);
+            if (string.IsNullOrEmpty(extension))
+                throw new ArgumentException("Filename must have an extension", nameof(filename));
+
+            string baseName = Path.GetFileNameWithoutExtension(filename);
+            return $"{baseName}R{extension}";
         }
 
         public void WriteFile(FileInfo output)

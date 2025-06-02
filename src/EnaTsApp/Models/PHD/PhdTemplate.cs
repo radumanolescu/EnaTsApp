@@ -226,5 +226,19 @@ namespace Com.Ena.Timesheet.Phd
                 cell.Value = null;
             }
         }
+
+        /// <summary>
+        /// Gets the standardized filename for the (filled-in) PHD timesheet Excel file.
+        /// The filename format is "PHD ENA Timesheet YYYY-MM.xlsx" where YYYY-MM is the year and month.
+        /// </summary>
+        /// <param name="yearMonth">The year and month in YYYYMM format (e.g., "202504").</param>
+        /// <returns>The formatted PHD timesheet filename.</returns>
+        public static string GetTimesheetFileName(string yearMonth)
+        {
+            // e.g. "PHD ENA Timesheet 2023-03.xlsx"
+            return "PHD ENA Timesheet " + yearMonth.Substring(0, 4) + "-" + yearMonth.Substring(4, 2) + ".xlsx";
+        }
+
+
     }
 }

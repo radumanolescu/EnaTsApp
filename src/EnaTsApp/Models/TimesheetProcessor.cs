@@ -69,7 +69,7 @@ namespace Com.Ena.Timesheet
                 }
 
                 _logger.LogInformation("Creating PHD template and ENA timesheet objects");
-                var phdTemplate = new PhdTemplate(_yyyyMM, templateData, _templatePath, GetTemplateOutputPath());
+                var phdTemplate = new PhdTemplate(_yyyyMM, templateData, _templatePath, GetTemplateOutputPath(_yyyyMM));
                 var enaTimesheet = new EnaTimesheet(_yyyyMM, timesheetData, _timesheetPath, GetTimesheetOutputPath());
 
                 _logger.LogInformation("Updating PHD template with ENA timesheet data");
@@ -86,14 +86,14 @@ namespace Com.Ena.Timesheet
             }
         }
 
-        public string GetTemplateOutputPath()
+        public string GetTemplateOutputPath(string yyyyMM)
         {
-            return Path.Combine(GetDownloadsDirectory(), PhdTimesheetFileName(_yyyyMM));
+            return Path.Combine(GetDownloadsDirectory(), PhdTemplate.GetTimesheetFileName(yyyyMM));
         }
 
         public string GetTimesheetOutputPath()
         {
-            return Path.Combine(GetDownloadsDirectory(), AddRevisionToFilename(Path.GetFileName(_timesheetPath)));
+            return Path.Combine(GetDownloadsDirectory(), EnaTimesheet.AddRevisionToFilename(Path.GetFileName(_timesheetPath)));
         }
 
         public void WriteDropdowns(PhdTemplate phdTemplate)
@@ -136,29 +136,6 @@ namespace Com.Ena.Timesheet
                 Console.WriteLine($"Unexpected error parsing Excel file: {ex.Message}");
                 return new List<List<string>>();
             }
-        }
-
-        private string PhdTimesheetFileName(string yyyyMM)
-        {
-            // e.g. "PHD ENA Timesheet 2023-03.xlsx"
-            return "PHD ENA Timesheet " + yyyyMM.Substring(0, 4) + "-" + yyyyMM.Substring(4, 2) + ".xlsx";
-        }
-
-        /// <summary>
-        /// Adds 'R' before the extension in an Excel filename.
-        /// For example, "PHD 04 - April 2025.xlsx" becomes "PHD 04 - April 2025R.xlsx"
-        /// </summary>
-        public static string AddRevisionToFilename(string filename)
-        {
-            if (string.IsNullOrEmpty(filename))
-                throw new ArgumentException("Filename cannot be null or empty", nameof(filename));
-
-            string extension = Path.GetExtension(filename);
-            if (string.IsNullOrEmpty(extension))
-                throw new ArgumentException("Filename must have an extension", nameof(filename));
-
-            string baseName = Path.GetFileNameWithoutExtension(filename);
-            return $"{baseName}R{extension}";
         }
 
     }
