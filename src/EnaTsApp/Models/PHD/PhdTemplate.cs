@@ -8,6 +8,7 @@ using NPOI.XSSF.UserModel;
 using Com.Ena.Timesheet.Phd;
 using Com.Ena.Timesheet.Ena;
 using Com.Ena.Timesheet;
+using Ena.Timesheet.Util;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using OfficeOpenXml;
@@ -43,8 +44,17 @@ namespace Com.Ena.Timesheet.Phd
             First column is column 1
             Cell A1 is accessed as (1, 1)
             Cell B2 is accessed as (2, 2)
+
+            In the PHD Template:
+            - the top row (Excel row 1, template entry.RowNum = 0) is the header row.
+            - the first column (Excel column 1) is the client column.
+            - the second column (Excel column 2) is the task column.
+            - the first day of the month (Excel column 3) is in cell C2 (row=2, col=3)
+            So when mapping day D of the month, we need a row offset and a column offset.
         */
-        public static readonly int colOffset = 1;
+        public static readonly int dayColOffset = 2; // Column offset for day D into the Excel coordinates
+        public static readonly int dayRowOffset = 1; // Row offset for an entry into the Excel coordinates
+
 
         public PhdTemplate(string yearMonth, List<PhdTemplateEntry> entries, string inputPath, string outputPath) 
             : base(inputPath, outputPath)
@@ -190,6 +200,8 @@ namespace Com.Ena.Timesheet.Phd
         public void UpdateExcelPackage()
         {
             var worksheet = _excelPackage.Workbook.Worksheets[0];
+            // entry.RowNum is 0-based, so we need to add 1 to get the correct Excel row number
+            // entry.RowNum = 0 is the first row of the template, containing the headers
             
             foreach (var entry in entries)
             {
@@ -200,15 +212,19 @@ namespace Com.Ena.Timesheet.Phd
                     continue;
                 }
 
-                // Clear existing effort cells
-                EraseEffort(worksheet, entry.RowNum + 1, row);
+                // Clear existing effort cells, but not on the header row (entry.RowNum = 0)
+                if (entry.RowNum > 0)
+                {
+                    int excelRowNum = entry.RowNum + 1;
+                    EraseEffort(worksheet, excelRowNum, row);
+                }
 
                 // Set new effort values
                 foreach (var dayEffort in entry.GetEffort())
                 {
                     int day = dayEffort.Key;
                     double effort = dayEffort.Value;
-                    var cell = worksheet.Cells[row.Row, colOffset + day];
+                    var cell = worksheet.Cells[row.Row, dayColOffset + day];
                     cell.Value = effort;
                 }
             }
@@ -219,10 +235,11 @@ namespace Com.Ena.Timesheet.Phd
 
         private void EraseEffort(ExcelWorksheet worksheet, int rowNum, ExcelRow row)
         {
-            // Clear all cells from colOffset to the end of the row
-            for (int col = 1 + colOffset; col <= 31 + colOffset; col++) // Clear up to 31 days
+            // Clear all cells from first day of the month to the end of the month
+            int lastDayOfMonth = Time.GetLastDayOfMonth(yearMonth);
+            for (int day = 1; day <= lastDayOfMonth; day++) // Clear up to last day of the month
             {
-                var cell = worksheet.Cells[row.Row, col];
+                var cell = worksheet.Cells[row.Row, dayColOffset + day];
                 cell.Value = null;
             }
         }

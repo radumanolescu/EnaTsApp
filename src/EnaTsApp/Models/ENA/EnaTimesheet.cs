@@ -89,6 +89,7 @@ namespace Com.Ena.Timesheet.Ena
             return ms.ToArray();
         }
 
+        /*
         public EnaTimesheet(DateTime timesheetMonth, Stream inputStream, string inputPath, string outputPath)
             : base(inputPath, outputPath)
         {
@@ -152,12 +153,14 @@ namespace Com.Ena.Timesheet.Ena
             var inputEntries = ParseEntries(inputStream);
             ParseSortReindexEntries(inputEntries);
         }
+        */
 
         private void ParseSortReindexEntries(List<EnaTsEntry> inputEntries)
         {
+            // Sort and reindex entries in-place
             SortByDayProjectId(inputEntries);
             ReindexEntries(inputEntries);
-            this.enaTsEntries.AddRange(inputEntries);
+            this.projectEntries.Clear();
             this.projectEntries.AddRange(GetProjectEntries(inputEntries));
         }
 

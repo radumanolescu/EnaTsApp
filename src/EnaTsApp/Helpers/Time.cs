@@ -48,5 +48,20 @@ namespace Ena.Timesheet.Util
             var tsMonth = DateTime.ParseExact(dateStr, IsoLocalDateFmt, CultureInfo.InvariantCulture);
             return tsMonth.ToString(MMYYFmt, CultureInfo.InvariantCulture);
         }
+
+        public static int GetLastDayOfMonth(string yyyyMM)
+        {
+            if (string.IsNullOrEmpty(yyyyMM) || yyyyMM.Length != 6)
+                throw new ArgumentException("yyyyMM must be a 6-character string in format yyyyMM", nameof(yyyyMM));
+
+            if (!int.TryParse(yyyyMM.Substring(0, 4), out int year))
+                throw new ArgumentException("Invalid year in yyyyMM", nameof(yyyyMM));
+
+            if (!int.TryParse(yyyyMM.Substring(4, 2), out int month))
+                throw new ArgumentException("Invalid month in yyyyMM", nameof(yyyyMM));
+
+            return DateTime.DaysInMonth(year, month);
+        }
+
     }
 }

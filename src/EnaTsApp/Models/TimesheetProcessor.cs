@@ -57,26 +57,29 @@ namespace Com.Ena.Timesheet
                 templateData = ParseExcelFile(_templatePath);
                 timesheetData = ParseExcelFile(_timesheetPath);
 
-                if (templateData == null)
+                if (templateData == null || templateData.Count == 0 )
                 {
                     _logger.LogError("Failed to parse template file");
                     throw new Exception("Failed to parse template");
                 }
-                if (timesheetData == null)
+                if (timesheetData == null || timesheetData.Count == 0)
                 {
                     _logger.LogError("Failed to parse timesheet file");
                     throw new Exception("Failed to parse timesheet");
                 }
 
                 _logger.LogInformation("Creating PHD template and ENA timesheet objects");
+                // Parse the PHD template and the ENA timesheet
                 var phdTemplate = new PhdTemplate(_yyyyMM, templateData, _templatePath, GetTemplateOutputPath(_yyyyMM));
                 var enaTimesheet = new EnaTimesheet(_yyyyMM, timesheetData, _timesheetPath, GetTimesheetOutputPath());
+                // Generate the HTML invoice based on the ENA timesheet
                 EnaInvoice enaInvoice = new EnaInvoice(enaTimesheet);
                 var invoiceHtml = enaInvoice.GenerateInvoiceHtml();
                 File.WriteAllText("invoice.html", invoiceHtml);
+                // Generate the drop-downs for the following month based on the template
+                WriteDropdowns(phdTemplate);                
 
                 _logger.LogInformation("Updating PHD template with ENA timesheet data");
-                WriteDropdowns(phdTemplate);
                 phdTemplate.Update(enaTimesheet);
                 phdTemplate.SaveAs();
 

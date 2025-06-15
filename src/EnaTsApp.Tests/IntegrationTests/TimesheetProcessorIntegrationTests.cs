@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Xunit;
 using Com.Ena.Timesheet;
@@ -6,6 +7,9 @@ using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 using OfficeOpenXml;
 using Com.Ena.Timesheet.Phd;
+using Com.Ena.Timesheet.Xl;
+using Com.Ena.Timesheet.Ena;
+
 
 namespace Com.Ena.Timesheet.Tests.IntegrationTests
 {
@@ -27,17 +31,31 @@ namespace Com.Ena.Timesheet.Tests.IntegrationTests
             _testDataPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "TestData");
             _output.WriteLine($"---------- Test Data Path: [{_testDataPath}]");
 
-            _templatePath = Path.Combine(_testDataPath, "PHD Blank Timesheet April 2025.xlsx");
+            _templatePath = GetTemplateTestFilePath();
             _output.WriteLine($"---------- Template Path: [{_templatePath}]");
             Assert.True(File.Exists(_templatePath), "Template file should exist");
 
-            _timesheetPath = Path.Combine(_testDataPath, "PHD 04 - April 2025R.xlsx");
+            _timesheetPath = GetTimesheetTestFilePath();
             _output.WriteLine($"---------- Timesheet Path: [{_timesheetPath}]");
             Assert.True(File.Exists(_timesheetPath), "Timesheet file should exist");
         }
 
+        private string GetTemplateTestFilePath()
+        {
+            var templatePath = Path.Combine(_testDataPath, "PHD Blank Timesheet April 2025.xlsx");
+            Assert.True(File.Exists(templatePath), "Template file does not exist");
+            return templatePath;
+        }
+
+        private string GetTimesheetTestFilePath()
+        {
+            var timesheetPath = Path.Combine(_testDataPath, "PHD 04 - April 2025R.xlsx");
+            Assert.True(File.Exists(timesheetPath), "Timesheet file does not exist");
+            return timesheetPath;
+        }
+
         [Fact]
-        public void ShouldProcessTimesheetSuccessfully()
+        public void ShouldProcessTemplateAndTimesheetSuccessfully()
         {
             // Arrange
             var yyyyMM = "202504";
@@ -52,6 +70,38 @@ namespace Com.Ena.Timesheet.Tests.IntegrationTests
             // Assert
             Assert.True(File.Exists(outputPath), "Output file should be created");
             //Assert.Equal(_outputPath, Path.GetFileName(outputPath), "Output file name should match expected");
+        }
+
+        [Fact]
+        public void ShouldProcessTemplateSuccessfully()
+        {
+            // Arrange
+            var templatePath = GetTemplateTestFilePath();
+            // Act
+            var parser = new ExcelParser();
+            // This parsing method finds every single row that has been touched by the user, whether or not it has data in it.
+            // So it finds rows up to row 93 in the template, even though the template ends with SUM in row 91.
+			List<List<string>>? templateData = parser.ParseExcelFile(templatePath);
+            // Assert
+			Assert.True(templateData != null, "Failed to parse template file");
+            Assert.Equal(93, templateData.Count);
+		}
+
+        [Fact]
+        public void ShouldProcessTimesheetSuccessfully()
+        {
+            // Arrange
+            var timesheetPath = GetTimesheetTestFilePath();
+            // Act
+            var parser = new ExcelParser();
+            // This parsing method finds every single row that has been touched by the user, whether or not it has data in it.
+            List<List<string>>? timesheetData = parser.ParseExcelFile(timesheetPath);
+            var enaTimesheet = new EnaTimesheet("202504", timesheetData, timesheetPath, "unused.xlsx");
+            // Assert
+            Assert.True(timesheetData != null, "Failed to parse timesheet file");
+            Assert.Equal(119, timesheetData.Count);
+            Assert.Equal(98, enaTimesheet.EnaTsEntries.Count);
+            Assert.Equal(10, enaTimesheet.ProjectEntries.Count);
         }
 
         [Fact]
@@ -81,7 +131,7 @@ namespace Com.Ena.Timesheet.Tests.IntegrationTests
             var processor = new TimesheetProcessor(yyyyMM, invalidPath, _timesheetPath);
 
             // Act & Assert
-            Assert.Throws<FileNotFoundException>(() => processor.Process());
+            Assert.Throws<Exception>(() => processor.Process());
         }
 
         [Fact]
@@ -93,7 +143,7 @@ namespace Com.Ena.Timesheet.Tests.IntegrationTests
             var processor = new TimesheetProcessor(yyyyMM, _templatePath, invalidPath);
 
             // Act & Assert
-            Assert.Throws<FileNotFoundException>(() => processor.Process());
+            Assert.Throws<Exception>(() => processor.Process());
         }
     }
 }

@@ -9,29 +9,31 @@ using NPOI.XSSF.UserModel;
 using Com.Ena.Timesheet.Phd;
 using Com.Ena.Timesheet.Ena;
 using Com.Ena.Timesheet.Xl;
+using Ena.Timesheet.Util;
 
 namespace Com.Ena.Timesheet.Phd
 {
     /// <summary>
-    /// A parser for a PHD template, which has the following structure:
+    /// A parser for a PHD template, which has the following rows:
     /// HEADER,(ClientBlock)+,SUM
     /// where:
-    /// HEADER = "CLIENT,TASK,1,2,3,...,31"
+    /// HEADER = "CLIENT,TASK,1,2,3,...,31,TOTALS"
     /// ClientBlock = clientName,taskName,effort1,effort2,...,effort31,total
     /// [empty line, all cells are empty]
     /// SUM ="SUM,Total,1,2,3,...,31"
+    /// Here, the number "31" stands for the last day of the month.
     /// </summary>
     public class Parser : ExcelParser
     {
-        public List<PhdTemplateEntry> ParseBytes(byte[] fileBytes)
+        public List<PhdTemplateEntry> ParseBytes(byte[] fileBytes, string yearMonth)
         {
             using (var bis = new MemoryStream(fileBytes))
             {
-                return ParseEntries(bis);
+                return ParseEntries(bis, yearMonth);
             }
         }
 
-        public List<PhdTemplateEntry> ParseEntries(Stream inputStream)
+        public List<PhdTemplateEntry> ParseEntries(Stream inputStream, string yearMonth)
         {
             var entries = new List<PhdTemplateEntry>();
             IWorkbook workbook = WorkbookFactory.Create(inputStream);
@@ -56,13 +58,14 @@ namespace Com.Ena.Timesheet.Phd
                     if (rowNum > 0)
                     {
                         // Each day is a column in the sheet, starting from column 2 (offset 1) and ending at column 32 (offset 31)
-                        for (int colId = PhdTemplate.colOffset + 1; colId <= PhdTemplate.colOffset + 31; colId++)
+                        int lastDayOfMonth = Time.GetLastDayOfMonth(yearMonth);
+                        for (int colId = PhdTemplate.dayColOffset + 1; colId <= PhdTemplate.dayColOffset + lastDayOfMonth; colId++)
                         {
                             ICell cell = row.GetCell(colId);
                             if (cell != null && cell.CellType == CellType.Numeric)
                             {
                                 double d = cell.NumericCellValue;
-                                effort[colId - PhdTemplate.colOffset] = d;
+                                effort[colId - PhdTemplate.dayColOffset] = d;
                             }
                         }
                     }
