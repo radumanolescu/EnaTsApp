@@ -57,6 +57,27 @@ namespace Com.Ena.Timesheet.Xl
                                         case CellType.Boolean:
                                             rowData.Add(cell.BooleanCellValue.ToString());
                                             break;
+                                        case CellType.Formula:
+                                            var evaluator = cell.Sheet.Workbook.GetCreationHelper().CreateFormulaEvaluator();
+                                            var cellValue = evaluator.Evaluate(cell);
+                                            string formulaResult;
+                                            switch (cellValue.CellType)
+                                            {
+                                                case CellType.String:
+                                                    formulaResult = cellValue.StringValue;
+                                                    break;
+                                                case CellType.Numeric:
+                                                    formulaResult = cellValue.NumberValue.ToString();
+                                                    break;
+                                                case CellType.Boolean:
+                                                    formulaResult = cellValue.BooleanValue.ToString();
+                                                    break;
+                                                default:
+                                                    formulaResult = string.Empty;
+                                                    break;
+                                            }
+                                            rowData.Add(formulaResult);
+                                            break;
                                         default:
                                             rowData.Add(string.Empty);
                                             break;

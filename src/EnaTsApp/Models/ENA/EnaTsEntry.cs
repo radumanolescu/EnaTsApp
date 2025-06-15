@@ -361,7 +361,7 @@ namespace Com.Ena.Timesheet.Ena
         public LocalDate WithDayOfMonth(int day) => new LocalDate(new DateTime(date.Year, date.Month, day));
         public override string ToString() => date.ToString("yyyy-MM-dd");
         public string ToString(string format, IFormatProvider provider) => date.ToString(format, provider);
-        public override bool Equals(object obj) => obj != null && obj is LocalDate ld && date.Equals(ld.date);
+        public override bool Equals(object? obj) => obj is LocalDate ld && date.Equals(ld.date);
         public override int GetHashCode() => date.GetHashCode();
     }
 

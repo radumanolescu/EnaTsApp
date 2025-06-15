@@ -44,7 +44,7 @@ namespace Com.Ena.Timesheet
             //return KnownFolders.GetPath(KnownFolder.Downloads);
         }
 
-        public void Process()
+        public string Process()
         {
             try
             {
@@ -71,6 +71,9 @@ namespace Com.Ena.Timesheet
                 _logger.LogInformation("Creating PHD template and ENA timesheet objects");
                 var phdTemplate = new PhdTemplate(_yyyyMM, templateData, _templatePath, GetTemplateOutputPath(_yyyyMM));
                 var enaTimesheet = new EnaTimesheet(_yyyyMM, timesheetData, _timesheetPath, GetTimesheetOutputPath());
+                EnaInvoice enaInvoice = new EnaInvoice(enaTimesheet);
+                var invoiceHtml = enaInvoice.GenerateInvoiceHtml();
+                File.WriteAllText("invoice.html", invoiceHtml);
 
                 _logger.LogInformation("Updating PHD template with ENA timesheet data");
                 WriteDropdowns(phdTemplate);
@@ -78,6 +81,7 @@ namespace Com.Ena.Timesheet
                 phdTemplate.SaveAs();
 
                 _logger.LogInformation("Timesheet processing completed successfully");
+                return phdTemplate.OutputPath;
             }
             catch (Exception ex)
             {

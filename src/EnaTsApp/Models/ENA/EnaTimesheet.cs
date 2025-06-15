@@ -17,11 +17,16 @@ namespace Com.Ena.Timesheet.Ena
         private const int SHEET_INDEX = 0;
 
         private readonly DateTime timesheetMonth;
+        public DateTime TimesheetMonth => timesheetMonth;
+
         private readonly List<EnaTsEntry> enaTsEntries = new List<EnaTsEntry>();
-        private List<EnaTsProjectEntry> projectEntries = new List<EnaTsProjectEntry>();
+        public IReadOnlyList<EnaTsEntry> EnaTsEntries => enaTsEntries;
+
+        private readonly List<EnaTsProjectEntry> projectEntries = new List<EnaTsProjectEntry>();
+        public IReadOnlyList<EnaTsProjectEntry> ProjectEntries => projectEntries;
+
         private byte[]? xlsxBytes;
         private readonly ILogger<EnaTimesheet> _logger;
-        private readonly ILogger<EnaTsEntry> _entryLogger;
 
         private static readonly IServiceProvider _serviceProvider = new ServiceCollection()
             .AddLogging(builder => builder.AddConsole())
@@ -36,7 +41,6 @@ namespace Com.Ena.Timesheet.Ena
             : base(inputPath, outputPath)
         {
             _logger = GetLogger<EnaTimesheet>();
-            _entryLogger = GetLogger<EnaTsEntry>();
             this.timesheetMonth = DateTime.ParseExact(yyyyMM, "yyyyMM", CultureInfo.InvariantCulture);
             populateFromData(yyyyMM, timesheetData);
         }
@@ -44,9 +48,8 @@ namespace Com.Ena.Timesheet.Ena
         private void populateFromData(string yyyyMM, List<List<string>> timesheetData)
         {
             _logger.LogInformation($"Populating timesheet entries for {yyyyMM}");
-            
-            // Skip header row
-            for (int i = 1; i < timesheetData.Count; i++)
+
+            for (int i = 0; i < timesheetData.Count; i++)
             {
                 var row = timesheetData[i];
                 if (row.Count > 0)
@@ -56,6 +59,7 @@ namespace Com.Ena.Timesheet.Ena
                     _logger.LogInformation($"Added entry for row {i}: {entry.ProjectActivity()}");
                 }
             }
+            ParseSortReindexEntries(enaTsEntries);
         }
 
         private byte[] CreateXlsxFromData(List<List<string>> timesheetData)
@@ -89,7 +93,6 @@ namespace Com.Ena.Timesheet.Ena
             : base(inputPath, outputPath)
         {
             _logger = GetLogger<EnaTimesheet>();
-            _entryLogger = GetLogger<EnaTsEntry>();
             this.timesheetMonth = timesheetMonth;
             this.xlsxBytes = GetBytes(inputStream);
             using (var ms = new MemoryStream(this.xlsxBytes))
@@ -102,7 +105,6 @@ namespace Com.Ena.Timesheet.Ena
             : base(inputPath, outputPath)
         {
             _logger = GetLogger<EnaTimesheet>();
-            _entryLogger = GetLogger<EnaTsEntry>();
             this.timesheetMonth = timesheetMonth;
             using (var fs = enaTimesheetFile.OpenRead())
             {
@@ -118,7 +120,6 @@ namespace Com.Ena.Timesheet.Ena
             : base(inputPath, outputPath)
         {
             _logger = GetLogger<EnaTimesheet>();
-            _entryLogger = GetLogger<EnaTsEntry>();
             this.timesheetMonth = timesheetMonth;
             this.xlsxBytes = fileBytes;
             using (var ms = new MemoryStream(this.xlsxBytes))
@@ -131,7 +132,6 @@ namespace Com.Ena.Timesheet.Ena
             : base(inputPath, outputPath)
         {
             _logger = GetLogger<EnaTimesheet>();
-            _entryLogger = GetLogger<EnaTsEntry>();
             this.timesheetMonth = timesheetMonth;
             this.enaTsEntries = new List<EnaTsEntry>();
             xlsxBytes = null;
@@ -150,6 +150,11 @@ namespace Com.Ena.Timesheet.Ena
         private void ParseSortReindex(Stream inputStream)
         {
             var inputEntries = ParseEntries(inputStream);
+            ParseSortReindexEntries(inputEntries);
+        }
+
+        private void ParseSortReindexEntries(List<EnaTsEntry> inputEntries)
+        {
             SortByDayProjectId(inputEntries);
             ReindexEntries(inputEntries);
             this.enaTsEntries.AddRange(inputEntries);

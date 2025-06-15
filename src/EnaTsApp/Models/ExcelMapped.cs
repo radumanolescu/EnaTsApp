@@ -48,5 +48,7 @@ namespace Com.Ena.Timesheet
                 _excelPackage.SaveAs(new FileInfo(_outputPath));
             }
         }
+
+        public string OutputPath => _outputPath;
     }
 }
