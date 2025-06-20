@@ -1,10 +1,10 @@
 using System;
 using System.IO;
-using System.Text;
 using System.Linq;
 using System.Globalization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using Cottle;
 
 namespace Com.Ena.Timesheet.Ena
 {
@@ -21,74 +21,47 @@ namespace Com.Ena.Timesheet.Ena
 
         public string GenerateInvoiceHtml()
         {
-            var sb = new StringBuilder();
-            var month = _timesheet.TimesheetMonth;
-            
-            sb.AppendLine("<!DOCTYPE html>");
-            sb.AppendLine("<html lang=\"en\">");
-            sb.AppendLine("<head>");
-            sb.AppendLine("    <meta charset=\"UTF-8\">");
-            sb.AppendLine("    <title>ENA Invoice</title>");
-            sb.AppendLine(@"    <style>
-        body { font-family: Arial, sans-serif; }
-        .invoice-container { max-width: 800px; margin: 0 auto; padding: 20px; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .invoice-number { font-size: 24px; font-weight: bold; margin: 10px 0; }
-        .invoice-date { font-size: 16px; color: #666; }
-        .invoice-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        .invoice-table th, .invoice-table td { 
-            border: 1px solid #ddd; 
-            padding: 8px; 
-            text-align: left;
-        }
-        .invoice-table th { background-color: #f4f4f4; }
-        .total { 
-            font-weight: bold; 
-            text-align: right;
-            padding: 10px;
-            border-top: 2px solid #ddd;
-        }
-    </style>");
-            sb.AppendLine("</head>");
-            sb.AppendLine("<body>");
-            sb.AppendLine("    <div class=\"invoice-container\">");
-            sb.AppendLine("        <div class=\"header\">");
-            sb.AppendLine($"            <h1>ENA Invoice</h1>");
-            sb.AppendLine($"            <div class=\"invoice-number\">Invoice for {month.ToString("MMMM yyyy")}</div>");
-            sb.AppendLine($"            <div class=\"invoice-date\">Generated on: {DateTime.Now.ToString("yyyy-MM-dd")}</div>");
-            sb.AppendLine("        </div>");
+            DateTime month = _timesheet.TimesheetMonth;
+            string formattedMonth = month.ToString("MMMM yyyy", CultureInfo.InvariantCulture);
+            DateTime date = DateTime.Now;
+            string formattedDate = date.ToString("MMMM d, yyyy", CultureInfo.InvariantCulture);  // "June 12, 2025"
+            List<EnaTsEntry> entries = _timesheet.EnaTsEntries.OrderBy(e => e.Date).ThenBy(e => e.ProjectId).ToList();
+            string entriesWithTotals = _timesheet.GetEntriesWithTotalsAsHtml();
+            string projectEntries = _timesheet.GetProjectEntriesAsHtml();
+            float? totalHours = entries.Sum(e => e.Hours);
 
-            sb.AppendLine("        <table class=\"invoice-table\">");
-            sb.AppendLine("            <thead>");
-            sb.AppendLine("                <tr>");
-            sb.AppendLine("                    <th>Date</th>");
-            sb.AppendLine("                    <th>Project</th>");
-            sb.AppendLine("                    <th>Hours</th>");
-            sb.AppendLine(@"                    <th>Description</th>
-                </tr>");
-            sb.AppendLine("            </thead>");
-            sb.AppendLine("            <tbody>");
+            string template = File.ReadAllText(GetInvoiceTemplatePath());
 
-            foreach (var entry in _timesheet.EnaTsEntries.OrderBy(e => e.Date))
+            DocumentResult documentResult = Document.CreateDefault(template); // Create from template string
+            var document = documentResult.DocumentOrThrow; // Throws ParseException on error
+            var context = Context.CreateBuiltin(new Dictionary<Value, Value>
             {
-                sb.AppendLine("                <tr>");
-                sb.AppendLine($"                    <td>{entry.Date.ToString("yyyy-MM-dd")}</td>");
-                sb.AppendLine($"                    <td>{entry.ProjectId}</td>");
-                sb.AppendLine($"                    <td>{entry.Hours}</td>");
-                sb.AppendLine($"                    <td>{entry.Description}</td>");
-                sb.AppendLine("                </tr>");
+                ["invoiceMonth"] = formattedMonth,
+                ["invoiceDate"] = formattedDate,
+                ["entriesWithTotals"] = entriesWithTotals,
+                ["projectEntries"] = projectEntries
+            });
+            string html = document.Render(context);
+            File.WriteAllText(GetInvoicePath(month), html);
+            return html;
+        }
+
+        private static string GetInvoiceTemplatePath()
+        {
+            string templatePath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", "Templates", "ena-invoice.html");
+            if (!File.Exists(templatePath))
+            {
+                // If not found, try relative to the project root
+                templatePath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).FullName, "Resources", "Templates", "ena-invoice.html");
             }
+            // Until we know how to reliably access this resource, return the absolute path
+            return "C:/Users/Radu/-/projects/C#/EnaTsUiV2/src/EnaTsApp/Resources/Templates/ena-invoice.html";
+        }
 
-            sb.AppendLine("            </tbody>");
-            sb.AppendLine("        </table>");
-
-            var totalHours = _timesheet.EnaTsEntries.Sum(e => e.Hours);
-            sb.AppendLine($"        <div class=\"total\">Total Hours: {totalHours}</div>");
-            sb.AppendLine("    </div>");
-            sb.AppendLine("</body>");
-            sb.AppendLine("</html>");
-
-            return sb.ToString();
+        private static string GetInvoicePath(DateTime month)
+        {
+            string formattedMonth =$"ENA Invoice {month:yyyy-MM}.html";  // e.g.: "ENA Invoice 2025-04.html"
+            return Path.Combine(TimesheetProcessor.GetDownloadsDirectory(), formattedMonth);
         }
 
         private static ILogger<T> GetLogger<T>()

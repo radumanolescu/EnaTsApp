@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice: {invoiceMonth}</title>
+    <style>
+        body \{
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 40px;
+            color: #222;
+        \}
+        .header, .to-section \{
+            width: 100%;
+            margin-bottom: 10px;
+        \}
+        .header-left, .to-left \{
+            float: left;
+            width: 50%;
+        \}
+        .header-right, .to-right \{
+            float: right;
+            width: 50%;
+            text-align: right;
+        \}
+        .clear \{ clear: both; \}
+        h2 \{
+            margin-top: 40px;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            letter-spacing: 1px;
+        \}
+        table \{
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+            font-size: 0.98em;
+        \}
+        th, td \{
+            border: none;
+            padding: 6px 8px;
+            text-align: left;
+        \}
+        th \{
+            border-bottom: 2px solid #222;
+            background: #fafafa;
+        \}
+        tr.total-row td \{
+            font-weight: bold;
+            border-top: 1px solid #aaa;
+            background: #f5f5f5;
+        \}
+        tr.week-total td \{
+            font-weight: bold;
+            border-top: 1px solid #aaa;
+            background: #f5f5f5;
+        \}
+        tr.month-total td \{
+            font-weight: bold;
+            border-top: 2px solid #222;
+            background: #f0f0f0;
+        \}
+        .right \{
+            text-align: right;
+        \}
+        .bold \{
+            font-weight: bold;
+        \}
+        .email-link \{
+            color: #1a0dab;
+            text-decoration: underline;
+        \}
+        .section \{
+            margin-top: 40px;
+        \}
+        .section table td \{
+            font-size: 12px;
+        \}
+        .project-table th, .project-table td \{
+            padding: 4px 8px;
+        \}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <div class="bold">Invoice: {invoiceMonth}</div>
+            <div>{invoiceDate}</div>
+            <br>
+            <div>Elaine Newman Architect PC<br>
+                217 Newark Avenue, 515<br>
+                Jersey City, NJ 07302<br>
+                917.202.5971<br>
+                EIN: 82-1476764<br>
+                <a class="email-link" href="mailto:Selaine.newman@gmail.com">Selaine.newman@gmail.com</a>
+            </div>
+        </div>
+        <div class="header-right">
+            <div>To: <span class="bold">Peter Hosier Design, LLC</span></div>
+            <div>1133 Broadway, Ste 911<br>
+                New York, NY 10010<br>
+                <span class="bold">917-855-5915</span>
+            </div>
+        </div>
+        <div class="clear"></div>
+    </div>
+
+    <div class="section">
+        <h2>BREAKDOWN BY DAY AND WEEK</h2>
+        <table>
+            <tr>
+                <th>project</th>
+                <th>activity</th>
+                <th>date</th>
+                <th>hours</th>
+                <th>rate</th>
+                <th>description</th>
+                <th class="right">charge</th>
+            </tr>
+            {entriesWithTotals}
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>BREAKDOWN BY PROJECT</h2>
+        <table class="project-table">
+            <tr>
+                <th>project.name</th>
+                <th>activity</th>
+                <th>hours</th>
+            </tr>
+            {projectEntries}
+        </table>
+    </div>
+</body>

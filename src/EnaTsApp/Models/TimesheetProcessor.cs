@@ -37,7 +37,7 @@ namespace Com.Ena.Timesheet
             return serviceProvider.GetRequiredService<ILogger<TimesheetProcessor>>();
         }
 
-        private static string GetDownloadsDirectory()
+        public static string GetDownloadsDirectory()
         {
             //return Environment.GetFolderPath(Environment.KnownFolders.Downloads);
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");

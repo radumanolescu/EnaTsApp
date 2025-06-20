@@ -4,6 +4,7 @@ using System.Text;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using Ena.Timesheet.Util;
 
 namespace Com.Ena.Timesheet.Ena
 {
@@ -267,18 +268,17 @@ namespace Com.Ena.Timesheet.Ena
 
         public virtual string GetDate()
         {
-            return DateTime.Now.ToString("yyyy-MM-dd");
+            if (date != null)
+            {
+                return date.ToString("MM/dd/yy");
+            }
+            return "--/--/--";
         }
 
         public int GetWeekOfMonth()
         {
-            // Get the first day of the month
-            DateTime firstDayOfMonth = new DateTime(Month.Year, Month.Month, 1);
-            // Get the first Monday of the month
-            int firstMonday = (8 - (int)firstDayOfMonth.DayOfWeek + (int)DayOfWeek.Monday) % 7;
-            // Calculate the week number
-            int weekNumber = (Day.GetValueOrDefault() + firstMonday - 1) / 7;
-            return weekNumber + 1;
+            MondayAlignedCalendar calendar = new MondayAlignedCalendar(month);
+            return calendar.GetWeekOfMonth(date).Value;
         }
 
         public virtual string FormattedHours()
@@ -340,29 +340,22 @@ namespace Com.Ena.Timesheet.Ena
             this.EntryId = newId;
         }
 
-        // Helper methods for C# version
-
-
         private static string Unquote(string s)
         {
             return string.IsNullOrEmpty(s) ? "" : s.Replace("\"", "");
         }
 
-        // Placeholder for LocalDate
-        // You need to implement or use a suitable library for LocalDate in C#
-        // For now, you can use DateTime for LocalDate as needed
-    }
+        public virtual string HtmlClass()
+        {
+            return " ";
+        }
 
-    // Placeholder for LocalDate (replace with NodaTime or your own implementation)
-    public struct LocalDate
-    {
-        private DateTime date;
-        public LocalDate(DateTime dt) { date = dt.Date; }
-        public LocalDate WithDayOfMonth(int day) => new LocalDate(new DateTime(date.Year, date.Month, day));
-        public override string ToString() => date.ToString("yyyy-MM-dd");
-        public string ToString(string format, IFormatProvider provider) => date.ToString(format, provider);
-        public override bool Equals(object? obj) => obj is LocalDate ld && date.Equals(ld.date);
-        public override int GetHashCode() => date.GetHashCode();
+        public string GetHtmlRow()
+        {
+            string htmlClass = HtmlClass();
+            return $"<tr{htmlClass}><td>{projectId}</td><td>{activity}</td><td>{GetDate()}</td><td>{FormattedHours()}</td><td>{GetRate()}</td><td>{description}</td><td class=\"right\">{GetCharge()}</td></tr>";
+        }
+
     }
 
 }

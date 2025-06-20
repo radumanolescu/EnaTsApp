@@ -61,5 +61,10 @@ namespace Com.Ena.Timesheet.Ena
         {
             return "";
         }
+
+        public override string HtmlClass()
+        {
+            return " class='week-total'";
+        }
     }
 }

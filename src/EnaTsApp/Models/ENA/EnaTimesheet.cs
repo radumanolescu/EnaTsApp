@@ -89,72 +89,6 @@ namespace Com.Ena.Timesheet.Ena
             return ms.ToArray();
         }
 
-        /*
-        public EnaTimesheet(DateTime timesheetMonth, Stream inputStream, string inputPath, string outputPath)
-            : base(inputPath, outputPath)
-        {
-            _logger = GetLogger<EnaTimesheet>();
-            this.timesheetMonth = timesheetMonth;
-            this.xlsxBytes = GetBytes(inputStream);
-            using (var ms = new MemoryStream(this.xlsxBytes))
-            {
-                ParseSortReindex(ms);
-            }
-        }
-
-        public EnaTimesheet(DateTime timesheetMonth, FileInfo enaTimesheetFile, string inputPath, string outputPath)
-            : base(inputPath, outputPath)
-        {
-            _logger = GetLogger<EnaTimesheet>();
-            this.timesheetMonth = timesheetMonth;
-            using (var fs = enaTimesheetFile.OpenRead())
-            {
-                this.xlsxBytes = GetBytes(fs);
-            }
-            using (var ms = new MemoryStream(this.xlsxBytes))
-            {
-                ParseSortReindex(ms);
-            }
-        }
-
-        public EnaTimesheet(DateTime timesheetMonth, byte[] fileBytes, string inputPath, string outputPath)
-            : base(inputPath, outputPath)
-        {
-            _logger = GetLogger<EnaTimesheet>();
-            this.timesheetMonth = timesheetMonth;
-            this.xlsxBytes = fileBytes;
-            using (var ms = new MemoryStream(this.xlsxBytes))
-            {
-                ParseSortReindex(ms);
-            }
-        }
-
-        public EnaTimesheet(DateTime timesheetMonth, List<List<string>> timesheetData, string inputPath, string outputPath)
-            : base(inputPath, outputPath)
-        {
-            _logger = GetLogger<EnaTimesheet>();
-            this.timesheetMonth = timesheetMonth;
-            this.enaTsEntries = new List<EnaTsEntry>();
-            xlsxBytes = null;
-            _logger.LogInformation($"Creating EnaTimesheet for month {timesheetMonth.ToString("yyyy-MM")}");
-            
-            if (timesheetData != null)
-            {
-                for (int i = 0; i < timesheetData.Count; i++)
-                {
-                    var entry = new EnaTsEntry(i, timesheetMonth, timesheetData[i]);
-                    this.enaTsEntries.Add(entry);
-                }
-            }
-        }
-
-        private void ParseSortReindex(Stream inputStream)
-        {
-            var inputEntries = ParseEntries(inputStream);
-            ParseSortReindexEntries(inputEntries);
-        }
-        */
-
         private void ParseSortReindexEntries(List<EnaTsEntry> inputEntries)
         {
             // Sort and reindex entries in-place
@@ -173,9 +107,22 @@ namespace Com.Ena.Timesheet.Ena
             return entriesWithTotals;
         }
 
+        public string GetEntriesWithTotalsAsHtml()
+        {
+            // Since Cottle doesn't seem to support list iteration, we need to join the rows manually
+            var entriesWithTotals = GetEntriesWithTotals();
+            return string.Join("\n", entriesWithTotals.Select(e => e.GetHtmlRow()));
+        }
+
         public List<EnaTsEntry> GetEntries() => enaTsEntries;
 
         public List<EnaTsProjectEntry> GetProjectEntries() => projectEntries;
+
+        public string GetProjectEntriesAsHtml()
+        {
+            var entriesWithTotals = GetProjectEntries();
+            return string.Join("\n", entriesWithTotals.Select(e => e.GetHtmlRow()));
+        }
 
         public byte[] GetXlsxBytes() => xlsxBytes;
         public void SetXlsxBytes(byte[] bytes) => xlsxBytes = bytes;

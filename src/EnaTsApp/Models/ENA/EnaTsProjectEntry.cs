@@ -77,5 +77,16 @@ namespace Com.Ena.Timesheet.Ena
         {
             return $"{projectId}, {activity}, {Hours}";
         }
+
+        public string HtmlClass()
+        {
+            return " class='month-total'";
+        }
+
+        public string GetHtmlRow()
+        {
+            string htmlClass = HtmlClass();
+            return $"<tr{htmlClass}><td>{projectId}</td><td>{activity}</td><td>{FormattedHours}</td></tr>";
+        }
     }
 }
