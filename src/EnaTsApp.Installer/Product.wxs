@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Product Id="*" Name="EnaTsApp" Language="1033" Version="1.0.0.0" Manufacturer="Elaine Newman Architect PC" UpgradeCode="c75be29f-8e81-4fff-98c9-f25f7354b6a5">
+        <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine" Platform="x64"/>
+
+        <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed."/>
+        <MediaTemplate/>
+
+        <Feature Id="ProductFeature" Title="EnaTsApp" Level="1">
+            <ComponentGroupRef Id="ProductComponents"/>
+        </Feature>
+
+        <!-- Custom UI configuration -->
+        <WixVariable Id="WixUILicenseRtf" Value="License.rtf"/>
+        <WixVariable Id="WixUIBannerBmp" Value="Resources\Banner.bmp"/>
+        <WixVariable Id="WixUIDialogBmp" Value="Resources\Dialog.bmp"/>
+        <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER"/>
+        <UIRef Id="WixUI_InstallDir"/>
+        <WixVariable Id="WixUILicenseRtf" Value="License.rtf"/>
+        <WixVariable Id="WixUIBannerBmp" Value="Resources\Banner.bmp"/>
+        <WixVariable Id="WixUIDialogBmp" Value="Resources\Dialog.bmp"/>
+    </Product>
+
+    <Fragment>
+        <Directory Id="TARGETDIR" Name="SourceDir">
+            <Directory Id="ProgramFilesFolder">
+                <Directory Id="INSTALLFOLDER" Name="EnaTsApp">
+                    <!-- Application files will be added here -->
+                </Directory>
+            </Directory>
+            <Directory Id="ProgramMenuFolder">
+                <Directory Id="ApplicationProgramsFolder" Name="EnaTsApp"/>
+            </Directory>
+            <Directory Id="DesktopFolder"/>
+        </Directory>
+    </Fragment>
+
+    <Fragment>
+        <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+            <!-- Main executable -->
+            <Component Id="MainExecutable" Guid="712472f1-214b-4fb7-944c-a823a9d85e32">
+                <File Id="MainExecutableFile" Name="EnaTsApp.exe" Source="$(var.EnaTsApp.TargetPath)" KeyPath="yes">
+                    <Shortcut Id="desktopShortcut" Directory="DesktopFolder" Name="EnaTsApp" WorkingDirectory="INSTALLFOLDER" 
+                              Icon="ProductIcon.ico" IconIndex="0" Advertise="yes"/>
+                    <Shortcut Id="startMenuShortcut" Directory="ApplicationProgramsFolder" Name="EnaTsApp" 
+                              WorkingDirectory="INSTALLFOLDER" Icon="ProductIcon.ico" IconIndex="0" Advertise="yes"/>
+                </File>
+            </Component>
+
+            <!-- Configuration files -->
+            <Component Id="ConfigFiles" Guid="8bcb0314-3c8a-49d0-bb9d-b5c3820bde75">
+                <File Id="ConfigFile" Name="nlog.config" Source="$(var.EnaTsApp.TargetDir)nlog.config"/>
+            </Component>
+
+            <!-- Runtime dependencies -->
+            <Component Id="RuntimeDependencies" Guid="80c08fd1-e56f-4a4c-b0f0-b21a8d26c840">
+                <File Id="runtimeconfig" Name="EnaTsApp.runtimeconfig.json" Source="$(var.EnaTsApp.TargetDir)EnaTsApp.runtimeconfig.json"/>
+                <File Id="depsjson" Name="EnaTsApp.deps.json" Source="$(var.EnaTsApp.TargetDir)EnaTsApp.deps.json"/>
+            </Component>
+
+            <!-- Add your additional files here -->
+        </ComponentGroup>
+    </Fragment>
+
+    <Fragment>
+        <Icon Id="ProductIcon.ico" SourceFile="$(var.EnaTsApp.TargetDir)Resources\ProductIcon.ico"/>
+    </Fragment>
+</Wix>
