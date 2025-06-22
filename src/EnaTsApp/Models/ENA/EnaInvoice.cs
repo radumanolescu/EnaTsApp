@@ -30,7 +30,7 @@ namespace Com.Ena.Timesheet.Ena
             string projectEntries = _timesheet.GetProjectEntriesAsHtml();
             float? totalHours = entries.Sum(e => e.Hours);
 
-            string template = File.ReadAllText(GetInvoiceTemplatePath());
+            string template = GetInvoiceTemplate();
 
             DocumentResult documentResult = Document.CreateDefault(template); // Create from template string
             var document = documentResult.DocumentOrThrow; // Throws ParseException on error
@@ -46,16 +46,22 @@ namespace Com.Ena.Timesheet.Ena
             return html;
         }
 
-        private static string GetInvoiceTemplatePath()
+        private static string GetInvoiceTemplate()
         {
-            string templatePath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", "Templates", "ena-invoice.html");
-            if (!File.Exists(templatePath))
+            // Use embedded resource
+            var assembly = typeof(EnaInvoice).Assembly;
+            var resourceName = "EnaTsApp.Resources.Templates.ena-invoice.html";
+            
+            using (var stream = assembly.GetManifestResourceStream(resourceName))
             {
-                // If not found, try relative to the project root
-                templatePath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).FullName, "Resources", "Templates", "ena-invoice.html");
+                if (stream == null)
+                    throw new InvalidOperationException("Invoice template resource not found");
+
+                using (var reader = new StreamReader(stream))
+                {
+                    return reader.ReadToEnd();
+                }
             }
-            // Until we know how to reliably access this resource, return the absolute path
-            return "C:/Users/Radu/-/projects/C#/EnaTsUiV2/src/EnaTsApp/Resources/Templates/ena-invoice.html";
         }
 
         private static string GetInvoicePath(DateTime month)
