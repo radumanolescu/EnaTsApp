@@ -48,8 +48,10 @@ namespace Com.Ena.Timesheet.Tests.IntegrationTests.Phd
             var testData = new List<List<string>>
             {
                 new List<string> { "Client1", "Task1" },
+                new List<string> { "", "" },
                 new List<string> { "Client2", "Task2" },
-                new List<string> { "Client1", "Task3" }
+                new List<string> { "", "" },
+                new List<string> { "Client3", "Task3" }
             };
             var template = new PhdTemplate(TestYearMonth, testData, "", "");
 
@@ -57,10 +59,10 @@ namespace Com.Ena.Timesheet.Tests.IntegrationTests.Phd
             var clientTasks = template.ClientTasks();
 
             // Assert
-            Assert.Equal(3, clientTasks.Count);
+            Assert.Equal(5, clientTasks.Count);
             Assert.Contains("Client1#Task1", clientTasks);
             Assert.Contains("Client2#Task2", clientTasks);
-            Assert.Contains("Client1#Task3", clientTasks);
+            Assert.Contains("Client3#Task3", clientTasks);
         }
 
         [Fact]

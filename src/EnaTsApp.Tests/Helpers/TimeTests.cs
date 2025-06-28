@@ -41,7 +41,7 @@ namespace Ena.Timesheet.Tests.Helpers
             Assert.Throws<ArgumentException>(() => Time.GetLastDayOfMonth("abcd04"));
             
             // Invalid month
-            Assert.Throws<ArgumentException>(() => Time.GetLastDayOfMonth("202513"));
+            Assert.Throws<System.ArgumentOutOfRangeException>(() => Time.GetLastDayOfMonth("202513"));
         }
     }
 }

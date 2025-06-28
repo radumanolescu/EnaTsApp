@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Com.Ena.Timesheet;
 using NPOI.XSSF.UserModel;
+using F23.StringSimilarity;
 
 namespace Com.Ena.Timesheet.Ena
 {
@@ -290,11 +291,23 @@ namespace Com.Ena.Timesheet.Ena
 
         public static string BestMatch(string projectActivity, HashSet<string> clientTaskSet)
         {
-            // Use a string similarity algorithm, e.g., Jaro-Winkler or Levenshtein
-            // For now, return the first entry as a stub
-            // You can use the F23.StringSimilarity or SimMetrics.Net NuGet packages for real implementation
-            // TODO: implement string similarity algorithm
-            return clientTaskSet.FirstOrDefault() ?? "";
+            if (string.IsNullOrEmpty(projectActivity) || clientTaskSet == null || clientTaskSet.Count == 0)
+                return "";
+
+            string bestMatch = "";
+            double highestScore = 0;
+
+            foreach (string candidate in clientTaskSet)
+            {
+                double score = new JaroWinkler().Similarity(projectActivity, candidate);
+                if (score > highestScore)
+                {
+                    highestScore = score;
+                    bestMatch = candidate;
+                }
+            }
+
+            return bestMatch;
         }
 
         /// <summary>
