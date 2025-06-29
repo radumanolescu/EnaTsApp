@@ -54,17 +54,19 @@ namespace Com.Ena.Timesheet.Ena
             for (int i = 0; i < timesheetData.Count; i++)
             {
                 var row = timesheetData[i];
-                if (row.Count > 0)
+                // Ignore any row that is empty or contains only whitespace
+                if (row.Count == 0 || row.All(cell => string.IsNullOrWhiteSpace(cell)))
                 {
-                    var entry = new EnaTsEntry(i, timesheetMonth, row);
-                    enaTsEntries.Add(entry);
-                    _logger.LogInformation($"Added entry for row {i}: {entry.ProjectActivity()}");
+                    continue;
                 }
+                var entry = new EnaTsEntry(i, timesheetMonth, row);
+                enaTsEntries.Add(entry);
+                _logger.LogInformation($"Added entry for row {i}: {entry.ProjectActivity()}");
             }
             ParseSortReindexEntries(enaTsEntries);
         }
 
-        private byte[] CreateXlsxFromData(List<List<string>> timesheetData)
+        private byte[] CreateXlsxFromData(List<List<string>> timesheetData) // UNUSED
         {
             using var ms = new MemoryStream();
             using var workbook = new XSSFWorkbook();
@@ -129,6 +131,11 @@ namespace Com.Ena.Timesheet.Ena
         public byte[] GetXlsxBytes() => xlsxBytes;
         public void SetXlsxBytes(byte[] bytes) => xlsxBytes = bytes;
 
+        /// <summary>
+        /// Updates the Excel file by writing validation error messages for each entry that has an error.
+        /// The error messages are written to the error column (ERROR_COLUMN) of the worksheet.
+        /// The updated Excel object is saved to the output directory as a new Excel file.
+        /// </summary>
         private void UpdateExcelFile()
         {
             var worksheet = _excelPackage.Workbook.Worksheets[SHEET_INDEX];
@@ -252,6 +259,15 @@ namespace Com.Ena.Timesheet.Ena
                 );
         }
 
+        /// <summary>
+        /// Validates all client tasks in the timesheet against a set of allowed client tasks.
+        /// For each entry that has an invalid project activity:
+        /// 1. Marks the entry as invalid
+        /// 2. Suggests the closest matching client task from the allowed set
+        /// 3. Updates the Excel file with validation errors if any are found
+        /// </summary>
+        /// <param name="clientTaskSet">A set of valid client task strings that entries must match.</param>
+        /// <returns>True if all entries have valid project activities, false otherwise.</returns>
         public bool IsValidAllClientTasks(HashSet<string> clientTaskSet)
         {
             bool valid = true;
@@ -289,6 +305,17 @@ namespace Com.Ena.Timesheet.Ena
             return enaTsEntries.Count(e => !string.IsNullOrEmpty(e.Error));
         }
 
+        /// <summary>
+        /// Finds the best matching client task from a set of tasks using Jaro-Winkler string similarity.
+        /// This method is used to suggest corrections for invalid project activities in timesheet entries.
+        /// </summary>
+        /// <param name="projectActivity">The project activity string to find a match for.</param>
+        /// <param name="clientTaskSet">A set of valid client task strings to search through.</param>
+        /// <returns>The best matching client task string from the set, or an empty string if no valid match is found.</returns>
+        /// <remarks>
+        /// Uses the Jaro-Winkler algorithm to calculate string similarity, which is particularly
+        /// good at matching strings with common prefixes and small transpositions.
+        /// </remarks>
         public static string BestMatch(string projectActivity, HashSet<string> clientTaskSet)
         {
             if (string.IsNullOrEmpty(projectActivity) || clientTaskSet == null || clientTaskSet.Count == 0)
@@ -311,7 +338,7 @@ namespace Com.Ena.Timesheet.Ena
         }
 
         /// <summary>
-        /// Adds 'R' before the extension in an Excel filename.
+        /// Adds 'R' as the last character before the extension in an Excel filename.
         /// For example, "PHD 04 - April 2025.xlsx" becomes "PHD 04 - April 2025R.xlsx"
         /// </summary>
         /// <param name="filename">The input filename to modify. Must be a non-empty string with an extension.</param>
@@ -333,7 +360,7 @@ namespace Com.Ena.Timesheet.Ena
             File.WriteAllBytes(output.FullName, xlsxBytes);
         }
 
-        // Helper to read all bytes from a stream
+        // Helper method to read all bytes from a stream
         private static byte[] GetBytes(Stream input)
         {
             using (var ms = new MemoryStream())
@@ -351,6 +378,4 @@ namespace Com.Ena.Timesheet.Ena
             public float TotalCharge = 0.0f;
         }
     }
-
-    // You need to implement EnaTsEntry, EnaTsProjectEntry, EnaTsWeekTotalEntry, EnaTsWeekBlankEntry for this to work.
 }

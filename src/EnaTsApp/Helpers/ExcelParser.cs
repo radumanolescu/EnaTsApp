@@ -9,6 +9,16 @@ namespace Com.Ena.Timesheet.Xl
     {
         private const int SHEET_INDEX = 0;
 
+        /// <summary>
+        /// Parses an Excel file and returns its contents as a list of lists, where each inner list represents a row.
+        /// This method is agnostic to the Excel file format and can be used to parse any Excel file.
+        /// It should not be customized with assumptions about any specific Excel file format.
+        /// </summary>
+        /// <param name="filePath">The path to the Excel file to parse.</param>
+        /// <returns>A list of lists containing the Excel data, where each inner list represents a row and each string represents a cell value.</returns>
+        /// <exception cref="System.ArgumentNullException">Thrown when the filePath is null.</exception>
+        /// <exception cref="System.IO.FileNotFoundException">Thrown when the specified file does not exist.</exception>
+        /// <exception cref="System.InvalidOperationException">Thrown when no worksheets are found in the Excel file or the file appears to be empty.</exception>
         public List<List<string>> ParseExcelFile(string filePath)
         {
             var data = new List<List<string>>();

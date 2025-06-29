@@ -14,7 +14,7 @@ using Ena.Timesheet.Util;
 namespace Com.Ena.Timesheet.Phd
 {
     /// <summary>
-    /// A parser for a PHD template, which has the following rows:
+    /// A parser for a PHD template, which has the following structure (in terms of rows):
     /// HEADER,(ClientBlock)+,SUM
     /// where:
     /// HEADER = "CLIENT,TASK,1,2,3,...,31,TOTALS"
@@ -96,7 +96,7 @@ namespace Com.Ena.Timesheet.Phd
                 string clientTask = entry.ClientCommaTask();
                 if (clientTaskSet.Contains(clientTask))
                 {
-                    string errMsg = $"Duplicate client-task in row {entry.GetRowNum() + 1}: `{clientTask}`";
+                    string errMsg = $"Duplicate client-task in row {entry.GetRowNum() + 1}: '{clientTask}'";
                     throw new InvalidOperationException(errMsg);
                 }
                 // No point in adding empty client-task pairs, which are represented as "","".

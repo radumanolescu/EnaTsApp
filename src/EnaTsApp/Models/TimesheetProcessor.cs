@@ -44,6 +44,15 @@ namespace Com.Ena.Timesheet
             //return KnownFolders.GetPath(KnownFolder.Downloads);
         }
 
+        /// <summary>
+        /// Processes the timesheet data by:
+        /// 1. Parsing both the template and timesheet Excel files
+        /// 2. Creating PHD template and ENA timesheet objects
+        /// 3. Updating the PHD template with ENA timesheet data
+        /// 4. Generating an HTML invoice based on the ENA timesheet
+        /// </summary>
+        /// <returns>The output path of the processed ENA timesheet file.</returns>
+        /// <exception cref="System.Exception">Thrown if either file parsing fails or the PHD template update fails.</exception>
         public string Process()
         {
             try
