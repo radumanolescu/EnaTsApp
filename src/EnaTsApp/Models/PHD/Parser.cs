@@ -87,6 +87,8 @@ namespace Com.Ena.Timesheet.Phd
         /// <summary>
         /// Once the project code is set for all entries, check that there are no duplicate client-task pairs.
         /// Such errors have been observed in the past, and they are likely to be caused by manual errors in the template.
+        /// When such a case is detected, the task is modified to include the word "dup".
+        /// This will ensure that no effort will be booked against that entry.
         /// </summary>
         public static void CheckDupClientTask(List<PhdTemplateEntry> entries)
         {
@@ -97,7 +99,8 @@ namespace Com.Ena.Timesheet.Phd
                 if (clientTaskSet.Contains(clientTask))
                 {
                     string errMsg = $"Duplicate client-task in row {entry.GetRowNum() + 1}: '{clientTask}'";
-                    throw new InvalidOperationException(errMsg);
+                    Console.WriteLine(errMsg);
+                    entry.SetTask($"{entry.GetTask()} (dup)");
                 }
                 // No point in adding empty client-task pairs, which are represented as "","".
                 if (!string.IsNullOrEmpty(clientTask) && clientTask.Length > 5)
