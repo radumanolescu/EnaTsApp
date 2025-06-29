@@ -54,6 +54,13 @@ namespace Com.Ena.Timesheet.Tests.IntegrationTests
             return timesheetPath;
         }
 
+        private string GetTimesheetErrTestFilePath()
+        {
+            var timesheetPath = Path.Combine(_testDataPath, "PHD 04 - April-Err 2025.xlsx");
+            Assert.True(File.Exists(timesheetPath), "Timesheet file does not exist");
+            return timesheetPath;
+        }
+
         [Fact]
         public void ShouldProcessTemplateAndTimesheetSuccessfully()
         {
@@ -145,6 +152,21 @@ namespace Com.Ena.Timesheet.Tests.IntegrationTests
             // Act & Assert
             Assert.Throws<Exception>(() => processor.Process());
         }
+
+        [Fact]
+        public void ShouldFindInvalidTasks()
+        {
+            // Arrange
+            var yyyyMM = "202504";
+            var timesheetPath = GetTimesheetErrTestFilePath();
+            var processor = new TimesheetProcessor(yyyyMM, _templatePath, timesheetPath);
+            string outputPath = processor.Process();
+
+            // Act & Assert
+            Assert.EndsWith("PHD 04 - April-Err 2025R.xlsx", outputPath);
+
+        }
+
     }
 }
 // dotnet test src/EnaTsApp.Tests/EnaTsApp.Tests.csproj --filter "FullyQualifiedName~TimesheetProcessorIntegrationTests" --verbosity normal --logger "console;verbosity=detailed"

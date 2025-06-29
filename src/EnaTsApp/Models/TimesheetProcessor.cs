@@ -72,16 +72,23 @@ namespace Com.Ena.Timesheet
                 // Parse the PHD template and the ENA timesheet
                 var phdTemplate = new PhdTemplate(_yyyyMM, templateData, _templatePath, GetTemplateOutputPath(_yyyyMM));
                 var enaTimesheet = new EnaTimesheet(_yyyyMM, timesheetData, _timesheetPath, GetTimesheetOutputPath());
+                
+                // Fill in information from the ENA timesheet into the PHD template
+                _logger.LogInformation("Updating PHD template with ENA timesheet data");
+                bool valid = phdTemplate.Update(enaTimesheet);
+                if (!valid)
+                {
+                    _logger.LogError("Failed to update PHD template with ENA timesheet data");
+                    return enaTimesheet.OutputPath;
+                }
+                phdTemplate.SaveAs();
+
                 // Generate the HTML invoice based on the ENA timesheet
                 EnaInvoice enaInvoice = new EnaInvoice(enaTimesheet);
                 var invoiceHtml = enaInvoice.GenerateInvoiceHtml();
                 File.WriteAllText("invoice.html", invoiceHtml);
                 // Generate the drop-downs for the following month based on the template
                 WriteDropdowns(phdTemplate);                
-
-                _logger.LogInformation("Updating PHD template with ENA timesheet data");
-                phdTemplate.Update(enaTimesheet);
-                phdTemplate.SaveAs();
 
                 _logger.LogInformation("Timesheet processing completed successfully");
                 return phdTemplate.OutputPath;

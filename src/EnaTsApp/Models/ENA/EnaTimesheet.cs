@@ -16,6 +16,7 @@ namespace Com.Ena.Timesheet.Ena
     public class EnaTimesheet : ExcelMapped
     {
         private const int SHEET_INDEX = 0;
+        private const int ERROR_COLUMN = 7;
 
         private readonly DateTime timesheetMonth;
         public DateTime TimesheetMonth => timesheetMonth;
@@ -128,28 +129,23 @@ namespace Com.Ena.Timesheet.Ena
         public byte[] GetXlsxBytes() => xlsxBytes;
         public void SetXlsxBytes(byte[] bytes) => xlsxBytes = bytes;
 
-        private List<EnaTsEntry> ParseEntries(Stream inputStream)
+        private void UpdateExcelFile()
         {
-            var enaEntries = new List<EnaTsEntry>();
-            // You need to use a library like EPPlus or ClosedXML to read Excel files in C#
-            // This is a placeholder for actual Excel parsing logic
-            // For each row in the sheet, create an EnaTsEntry and add to enaEntries
-            // Example:
-            // using (var package = new ExcelPackage(inputStream)) { ... }
-            // For now, this is left as a stub.
-            throw new NotImplementedException("Excel parsing not implemented. Use EPPlus or ClosedXML.");
-        }
-
-        private void UpdateBytes(/*Workbook workbook*/ float notUsed = 0.0f)
-        {
-            // Use EPPlus or ClosedXML to write the workbook to a MemoryStream and update xlsxBytes
-            throw new NotImplementedException("Excel writing not implemented. Use EPPlus or ClosedXML.");
-        }
-
-        private void UpdateBytes()
-        {
-            // Use EPPlus or ClosedXML to update error cells and write to xlsxBytes
-            throw new NotImplementedException("Excel writing not implemented. Use EPPlus or ClosedXML.");
+            var worksheet = _excelPackage.Workbook.Worksheets[SHEET_INDEX];
+            // Write the entry error message (if any) to the error column
+            foreach (var entry in enaTsEntries)
+            {
+                if (string.IsNullOrEmpty(entry.Error))
+                    continue;
+                var row = worksheet.Row(entry.LineId + 1); // +1 because Excel is 1-based
+                if (row == null)
+                    continue;
+                var cell = worksheet.Cells[row.Row, ERROR_COLUMN];
+                cell.Value = entry.Error;
+                cell.Style.Font.Bold = true;
+                cell.Style.Font.Color.SetColor(System.Drawing.Color.Red);
+            }
+            SaveAs();
         }
 
         private void ReindexEntries(List<EnaTsEntry> entries)
@@ -261,6 +257,10 @@ namespace Com.Ena.Timesheet.Ena
             bool valid = true;
             foreach (var entry in enaTsEntries)
             {
+                if (!string.IsNullOrEmpty(entry.Error))
+                {
+                    valid = false;
+                }
                 if (!clientTaskSet.Contains(entry.ProjectActivity()))
                 {
                     valid = false;
@@ -274,7 +274,7 @@ namespace Com.Ena.Timesheet.Ena
             }
             if (!valid)
             {
-                UpdateBytes();
+                UpdateExcelFile();
             }
             return valid;
         }

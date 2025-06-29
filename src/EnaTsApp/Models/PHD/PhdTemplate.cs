@@ -53,8 +53,6 @@ namespace Com.Ena.Timesheet.Phd
             So when mapping day D of the month, we need a row offset and a column offset.
         */
         public static readonly int dayColOffset = 2; // Column offset for day D into the Excel coordinates
-        public static readonly int dayRowOffset = 1; // Row offset for an entry into the Excel coordinates
-
 
         public PhdTemplate(string yearMonth, List<PhdTemplateEntry> entries, string inputPath, string outputPath) 
             : base(inputPath, outputPath)
@@ -151,9 +149,12 @@ namespace Com.Ena.Timesheet.Phd
         ///     - Any ENA task is not found in the PHD template
         ///     - Total hours mismatch between ENA and PHD after update
         /// </exception>
-        public void Update(EnaTimesheet enaTimesheet)
+        public bool Update(EnaTimesheet enaTimesheet)
         {
-            CheckTasks(enaTimesheet);
+            if (!enaTimesheet.IsValidAllClientTasks(ClientTaskSet()))
+            {
+                return false;
+            }
             var enaEffort = enaTimesheet.TotalHoursByClientTaskDay(); // Dictionary<string, Dictionary<int, double>>
             foreach (var phdEntry in entries) // PhdTemplateEntry phdEntry
             {
@@ -171,6 +172,7 @@ namespace Com.Ena.Timesheet.Phd
                 throw new Exception($"Total hours mismatch: ENA={enaTotalHours} PHD={phdTotalHours}");
             }
             UpdateExcelPackage();
+            return true;
         }
 
         private void PrintEntries()
@@ -181,7 +183,7 @@ namespace Com.Ena.Timesheet.Phd
             }
         }
 
-        public void CheckTasks(EnaTimesheet enaTimesheet)
+        public void CheckTasks(EnaTimesheet enaTimesheet) // UNUSED
         {
             var clientTaskSet = ClientTaskSet();
             foreach (var enaEntry in enaTimesheet.GetEntries())
