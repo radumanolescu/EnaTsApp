@@ -172,6 +172,7 @@ namespace Com.Ena.Timesheet.Phd
                 throw new Exception($"Total hours mismatch: ENA={enaTotalHours} PHD={phdTotalHours}");
             }
             UpdateExcelPackage();
+            CheckOverallHours();
             return true;
         }
 
@@ -234,6 +235,52 @@ namespace Com.Ena.Timesheet.Phd
             // Recalculate formulas
             _excelPackage.Workbook.Calculate();
         }
+
+        /// <summary>
+        /// Verifies that the total hours in the Excel file match the total hours in the object model.
+        /// Performs two checks:
+        /// 1. Compares the SUM row total with the model's total hours
+        /// 2. Compares the SUM+1 row total with the model's total hours
+        /// This is necessary because sometimes the Excel formulas are not correct in the template,
+        /// and they end up excluding certain columns.
+        /// </summary>
+        /// <exception cref="System.Exception">Thrown if either total hours check fails.</exception>
+        public void CheckOverallHours()
+        {
+            var worksheet = _excelPackage.Workbook.Worksheets[0];
+            int columnOfTotals = excelColumnOf("TOTALS", 1); // On the top row, index of "TOTALS"
+            if (columnOfTotals == 0)
+            {
+                throw new Exception("TOTALS column not found");
+            }
+            int rowOfSum = excelRowOf("SUM", 1); // In the first column, index of "SUM"
+            if (rowOfSum == 0)
+            {
+                throw new Exception("SUM row not found");
+            }
+            double modelTotalHours = TotalHours(); // in the object model
+            var sum1 = worksheet.Cells[rowOfSum, columnOfTotals].Value;
+            if (sum1 == null)
+            {
+                throw new Exception($"SUM cell not found at row {rowOfSum}, column {columnOfTotals}");
+            }
+            double sumTotalHours = Convert.ToDouble(sum1); // in the Excel file
+            if (modelTotalHours != sumTotalHours)
+            {
+                throw new Exception($"Total hours mismatch: Model={modelTotalHours} != SUM={sumTotalHours}");
+            }
+            // The final total for the month is on the next row
+            var sum2 = worksheet.Cells[rowOfSum + 1, columnOfTotals].Value;
+            if (sum2 == null)
+            {
+                throw new Exception($"SUM+1 cell not found at row {rowOfSum + 1}, column {columnOfTotals}");
+            }
+            sumTotalHours = Convert.ToDouble(sum2); // in the Excel file
+            if (modelTotalHours != sumTotalHours)
+            {
+                throw new Exception($"Total hours mismatch: Model={modelTotalHours} != SUM+1={sumTotalHours}");
+            }
+        }   
 
         private void EraseEffort(ExcelWorksheet worksheet, int rowNum, ExcelRow row)
         {

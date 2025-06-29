@@ -124,7 +124,7 @@ namespace Com.Ena.Timesheet
             try
             {
                 _logger.LogInformation("Writing client tasks to Dropdowns.txt");
-                var dropdownsPath = Path.Combine(Path.GetDirectoryName(_templatePath) ?? throw new InvalidOperationException("Invalid template path"), "Dropdowns.txt");
+                var dropdownsPath = Path.Combine(Path.GetDirectoryName(phdTemplate.OutputPath) ?? throw new InvalidOperationException("Invalid template path"), "Dropdowns.txt");
                 var tasks = phdTemplate.ClientTasks();
                 File.WriteAllLines(dropdownsPath, tasks);
                 _logger.LogInformation($"Client tasks written to {dropdownsPath}");
