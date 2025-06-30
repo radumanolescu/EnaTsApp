@@ -296,9 +296,9 @@ namespace EnaTsApp
                 string templatePath = fileLocations["template"];
                 string timesheetPath = fileLocations["timesheet"];
                 TimesheetProcessor processor = new TimesheetProcessor(yyyyMM, templatePath, timesheetPath);
-                processor.Process();
+                var outputFile = processor.Process();
 
-                string message = "Processing complete.\n";
+                string message = $"See output file: {outputFile}\n";
                 message += $"Selected Date: {selectedDate.ToString("MMMM yyyy")}\n";
                 message += $"Template Data: {(templateData?.Count ?? 0)} rows\n";
                 message += $"Timesheet Data: {(timesheetData?.Count ?? 0)} rows";

@@ -12,6 +12,7 @@ using Ena.Timesheet.Util;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using OfficeOpenXml;
+using Com.Ena.Timesheet.PHD;
 
 namespace Com.Ena.Timesheet.Phd
 {
@@ -251,34 +252,34 @@ namespace Com.Ena.Timesheet.Phd
             int columnOfTotals = excelColumnOf("TOTALS", 1); // On the top row, index of "TOTALS"
             if (columnOfTotals == 0)
             {
-                throw new Exception("TOTALS column not found");
+                throw new PhdException("TOTALS column not found");
             }
             int rowOfSum = excelRowOf("SUM", 1); // In the first column, index of "SUM"
             if (rowOfSum == 0)
             {
-                throw new Exception("SUM row not found");
+                throw new PhdException("SUM row not found");
             }
             double modelTotalHours = TotalHours(); // in the object model
             var sum1 = worksheet.Cells[rowOfSum, columnOfTotals].Value;
             if (sum1 == null)
             {
-                throw new Exception($"SUM cell not found at row {rowOfSum}, column {columnOfTotals}");
+                throw new PhdException($"SUM cell not found at row {rowOfSum}, column {columnOfTotals}");
             }
             double sumTotalHours = Convert.ToDouble(sum1); // in the Excel file
             if (modelTotalHours != sumTotalHours)
             {
-                throw new Exception($"Total hours mismatch: Model={modelTotalHours} != SUM={sumTotalHours}");
+                throw new PhdException($"Total hours mismatch: Model={modelTotalHours} != SUM={sumTotalHours}");
             }
             // The final total for the month is on the next row
             var sum2 = worksheet.Cells[rowOfSum + 1, columnOfTotals].Value;
             if (sum2 == null)
             {
-                throw new Exception($"SUM+1 cell not found at row {rowOfSum + 1}, column {columnOfTotals}");
+                throw new PhdException($"SUM+1 cell not found at row {rowOfSum + 1}, column {columnOfTotals}");
             }
             sumTotalHours = Convert.ToDouble(sum2); // in the Excel file
             if (modelTotalHours != sumTotalHours)
             {
-                throw new Exception($"Total hours mismatch: Model={modelTotalHours} != SUM+1={sumTotalHours}");
+                throw new PhdException($"Total hours mismatch: Model={modelTotalHours} != SUM+1={sumTotalHours}");
             }
         }   
 

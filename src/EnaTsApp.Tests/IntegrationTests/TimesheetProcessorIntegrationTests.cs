@@ -168,5 +168,6 @@ namespace Com.Ena.Timesheet.Tests.IntegrationTests
         }
 
     }
+    
 }
 // dotnet test src/EnaTsApp.Tests/EnaTsApp.Tests.csproj --filter "FullyQualifiedName~TimesheetProcessorIntegrationTests" --verbosity normal --logger "console;verbosity=detailed"
