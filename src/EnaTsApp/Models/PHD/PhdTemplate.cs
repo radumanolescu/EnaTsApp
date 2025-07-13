@@ -154,7 +154,7 @@ namespace Com.Ena.Timesheet.Phd
         {
             if (!enaTimesheet.IsValidAllClientTasks(ClientTaskSet()))
             {
-                return false;
+                throw new Exception($"Found invalid tasks, see timesheet file {enaTimesheet.OutputPath}");
             }
             var enaEffort = enaTimesheet.TotalHoursByClientTaskDay(); // Dictionary<string, Dictionary<int, double>>
             foreach (var phdEntry in entries) // PhdTemplateEntry phdEntry
