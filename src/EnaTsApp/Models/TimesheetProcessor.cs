@@ -88,12 +88,13 @@ namespace Com.Ena.Timesheet
                 // Fill in information from the ENA timesheet into the PHD template
                 _logger.LogInformation("Updating PHD template with ENA timesheet data");
                 bool valid = phdTemplate.Update(enaTimesheet);
+                phdTemplate.SaveAs();
                 if (!valid)
                 {
-                    _logger.LogError("Failed to update PHD template with ENA timesheet data");
-                    return enaTimesheet.OutputPath;
+                    var errorMessage = "See error annotations in the timesheet file " + enaTimesheet.OutputPath;
+                    _logger.LogError(errorMessage);
+                    throw new Exception(errorMessage);
                 }
-                phdTemplate.SaveAs();
 
                 // Generate the HTML invoice based on the ENA timesheet
                 EnaInvoice enaInvoice = new EnaInvoice(enaTimesheet);
@@ -124,8 +125,8 @@ namespace Com.Ena.Timesheet
         {
             try
             {
-                _logger.LogInformation("Writing client tasks to Dropdowns.txt");
-                var dropdownsPath = Path.Combine(Path.GetDirectoryName(phdTemplate.OutputPath) ?? throw new InvalidOperationException("Invalid template path"), "Dropdowns.txt");
+                _logger.LogInformation("Writing client tasks to ena_dropdown.txt");
+                var dropdownsPath = Path.Combine(Path.GetDirectoryName(phdTemplate.OutputPath) ?? throw new InvalidOperationException("Invalid template path"), "ena_dropdown.txt");
                 var tasks = phdTemplate.ClientTasks();
                 File.WriteAllLines(dropdownsPath, tasks);
                 _logger.LogInformation($"Client tasks written to {dropdownsPath}");

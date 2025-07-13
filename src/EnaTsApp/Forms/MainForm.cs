@@ -299,9 +299,9 @@ namespace EnaTsApp
                 var outputFile = processor.Process();
 
                 string message = $"See output file: {outputFile}\n";
-                message += $"Selected Date: {selectedDate.ToString("MMMM yyyy")}\n";
-                message += $"Template Data: {(templateData?.Count ?? 0)} rows\n";
-                message += $"Timesheet Data: {(timesheetData?.Count ?? 0)} rows";
+                message += $"Selected Date: {selectedDate.ToString("MMMM yyyy")}. ";
+                message += $"Template Data: {(templateData?.Count ?? 0)} rows. ";
+                message += $"Timesheet Data: {(timesheetData?.Count ?? 0)} rows. ";
 
                 ShowSuccess(message);
             }
