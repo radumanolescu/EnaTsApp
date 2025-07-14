@@ -80,8 +80,9 @@ namespace EnaTsApp
 
             // Form properties
             this.Text = "Elaine Newman Architect, PC - Timesheet & Invoice App";
-            this.Size = new Size(1800, 600);
+            this.MinimumSize = new Size(1600, 900); // Set minimum size
             this.StartPosition = FormStartPosition.CenterScreen;
+            this.AutoScaleMode = AutoScaleMode.Font; // Enable font-based scaling
 
             // Create buttons panel
             Panel buttonPanel = new Panel
@@ -95,7 +96,7 @@ namespace EnaTsApp
             btnChooseMonth = new Button
             {
                 Text = "Choose Month",
-                Size = new Size(120, 30),
+                Size = new Size(240, 30),
                 Location = new Point(10, 10)
             };
             btnChooseMonth.Click += BtnChooseMonth_Click;
@@ -104,8 +105,8 @@ namespace EnaTsApp
             btnUploadTemplate = new Button
             {
                 Text = "Upload Template",
-                Size = new Size(120, 30),
-                Location = new Point(140, 10)
+                Size = new Size(240, 30),
+                Location = new Point(260, 10)
             };
             btnUploadTemplate.Click += BtnUploadTemplate_Click;
 
@@ -113,8 +114,8 @@ namespace EnaTsApp
             btnUploadTimesheet = new Button
             {
                 Text = "Upload Timesheet",
-                Size = new Size(120, 30),
-                Location = new Point(270, 10)
+                Size = new Size(240, 30),
+                Location = new Point(510, 10)
             };
             btnUploadTimesheet.Click += BtnUploadTimesheet_Click;
 
@@ -122,8 +123,8 @@ namespace EnaTsApp
             btnProcess = new Button
             {
                 Text = "Process Data",
-                Size = new Size(120, 30),
-                Location = new Point(400, 10)
+                Size = new Size(240, 30),
+                Location = new Point(760, 10)
             };
             btnProcess.Click += BtnProcess_Click;
 
@@ -137,7 +138,8 @@ namespace EnaTsApp
                 Height = 80,
                 Dock = DockStyle.Top,
                 BorderStyle = BorderStyle.FixedSingle,
-                BackColor = Color.FromArgb(255, 245, 245)
+                BackColor = Color.FromArgb(255, 245, 245),
+                AutoSize = true
             };
 
             Label errorTitle = new Label
@@ -151,10 +153,9 @@ namespace EnaTsApp
             errorLabel = new Label
             {
                 Text = "No errors",
-                Location = new Point(10, 25),
-                Size = new Size(850, 50),
+                AutoSize = true,
                 ForeColor = Color.Green,
-                AutoSize = false
+                Location = new Point(10, 25)
             };
 
             errorPanel.Controls.AddRange(new Control[] { errorTitle, errorLabel });
@@ -167,7 +168,8 @@ namespace EnaTsApp
                 AllowUserToDeleteRows = false,
                 ReadOnly = true,
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells,
-                SelectionMode = DataGridViewSelectionMode.FullRowSelect
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells
             };
 
             // Add controls to form
@@ -186,7 +188,7 @@ namespace EnaTsApp
                 Form calendarForm = new Form
                 {
                     Text = "Choose Date",
-                    Size = new Size(300, 250),
+                    Size = new Size(300, 300),
                     StartPosition = FormStartPosition.CenterParent,
                     FormBorderStyle = FormBorderStyle.FixedDialog,
                     MaximizeBox = false,
@@ -207,7 +209,7 @@ namespace EnaTsApp
                 Button okButton = new Button
                 {
                     Text = "OK",
-                    Size = new Size(75, 23),
+                    Size = new Size(75, 30),
                     Location = new Point(100, 180),
                     DialogResult = DialogResult.OK
                 };
