@@ -451,7 +451,7 @@ namespace EnaTsApp
         public ActivitySelectionForm(string invalidActivity, string suggestedActivity, List<string> validActivities)
         {
             this.Text = "Invalid Activity Found";
-            this.Size = new Size(500, 200);
+            this.Size = new Size(750, 300);
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -474,7 +474,7 @@ namespace EnaTsApp
             // Message label
             var lblMessage = new Label
             {
-                Text = $"Invalid activity: {invalidActivity}\nPlease select a valid activity:",
+                Text = $"Invalid activity: \n{invalidActivity}\nPlease select a valid activity:",
                 AutoSize = true,
                 Dock = DockStyle.Top,
                 Margin = new Padding(0, 0, 0, 10)
