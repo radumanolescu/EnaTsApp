@@ -66,33 +66,6 @@ namespace Com.Ena.Timesheet.Ena
             ParseSortReindexEntries(enaTsEntries);
         }
 
-        private byte[] CreateXlsxFromData(List<List<string>> timesheetData) // UNUSED
-        {
-            using var ms = new MemoryStream();
-            using var workbook = new XSSFWorkbook();
-            var sheet = workbook.CreateSheet();
-
-            // Add headers
-            var headerRow = sheet.CreateRow(0);
-            foreach (var header in timesheetData[0])
-            {
-                headerRow.CreateCell(headerRow.LastCellNum).SetCellValue(header);
-            }
-
-            // Add data rows
-            for (int i = 1; i < timesheetData.Count; i++)
-            {
-                var row = sheet.CreateRow(i);
-                foreach (var cellValue in timesheetData[i])
-                {
-                    row.CreateCell(row.LastCellNum).SetCellValue(cellValue);
-                }
-            }
-
-            workbook.Write(ms);
-            return ms.ToArray();
-        }
-
         private void ParseSortReindexEntries(List<EnaTsEntry> inputEntries)
         {
             // Sort and reindex entries in-place
