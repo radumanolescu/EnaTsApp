@@ -15,7 +15,6 @@ namespace Com.Ena.Timesheet.Ena
     {
         private readonly ILogger<EnaTsEntry> _logger;
         private static readonly NumberFormatInfo decimalFormat = new NumberFormatInfo { NumberDecimalDigits = 2 };
-        private static readonly string dateFormat = "MM/dd/yy";
         protected static readonly float HourlyRate = 60.0f;
 
         private static readonly IServiceProvider _serviceProvider = new ServiceCollection()
