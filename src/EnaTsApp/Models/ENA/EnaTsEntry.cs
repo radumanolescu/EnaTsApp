@@ -254,6 +254,29 @@ namespace Com.Ena.Timesheet.Ena
             set => error = value;
         }
 
+        /// <summary>
+        /// Sets both the project ID and activity from a string in the format "project#activity".
+        /// </summary>
+        /// <param name="projectActivity">The project and activity in the format "project#activity"</param>
+        /// <returns>True if the project and activity were successfully set, false otherwise</returns>
+        public bool SetProjectAndActivity(string projectActivity)
+        {
+            if (string.IsNullOrEmpty(projectActivity))
+            {
+                return false;
+            }
+
+            var parts = projectActivity.Split('#');
+            if (parts.Length != 2)
+            {
+                return false;
+            }
+
+            ProjectId = parts[0].Trim();
+            Activity = parts[1].Trim();
+            return true;
+        }
+
         public void SetError(string error)
         {
             this.Error = error;

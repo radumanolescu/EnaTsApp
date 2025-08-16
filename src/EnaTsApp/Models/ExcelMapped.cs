@@ -25,6 +25,7 @@ namespace Com.Ena.Timesheet
             if (string.IsNullOrEmpty(outputPath))
             {
                 outputPath = inputPath;
+                _outputPath = outputPath;
             }
 
             // Validate paths

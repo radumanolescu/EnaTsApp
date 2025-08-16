@@ -213,8 +213,8 @@ namespace Com.Ena.Timesheet.Ena
         /// Updates the activity for all entries that match the invalid activity to the valid activity.
         /// After updating, it saves the timesheet using SaveAs().
         /// </summary>
-        /// <param name="invalidActivity">The activity to be replaced</param>
-        /// <param name="validActivity">The new activity to set</param>
+        /// <param name="invalidActivity">The activity to be replaced (in the format "project#activity")</param>
+        /// <param name="validActivity">The new activity to set (in the format "project#activity")</param>
         public void UpdateActivity(string invalidActivity, string validActivity)
         {
             if (string.IsNullOrEmpty(invalidActivity) || string.IsNullOrEmpty(validActivity))
@@ -227,12 +227,15 @@ namespace Com.Ena.Timesheet.Ena
             bool updated = false;
             foreach (var entry in enaTsEntries)
             {
-                if (string.Equals(entry.Activity, invalidActivity, StringComparison.OrdinalIgnoreCase))
+                var projectActivity = entry.ProjectActivity();
+                if (string.Equals(projectActivity, invalidActivity, StringComparison.OrdinalIgnoreCase))
                 {
-                    entry.Activity = validActivity;
-                    int row = entry.LineId + 1; // lineId is 0-based, Excel rows are 1-based
-                    worksheet.Cells[row, 1].Value = $"{entry.ProjectId}#{entry.Activity}";
-                    updated = true;
+                    updated = entry.SetProjectAndActivity(validActivity);
+                    if (updated)
+                    {
+                        int row = entry.LineId + 1; // lineId is 0-based, Excel rows are 1-based
+                        worksheet.Cells[row, 1].Value = entry.ProjectActivity();
+                    }
                 }
             }
 

@@ -140,7 +140,7 @@ namespace Com.Ena.Timesheet
             }
         }
 
-        private List<List<string>> ParseExcelFile(string filePath)
+        public static List<List<string>> ParseExcelFile(string filePath)
         {
             try
             {
@@ -168,7 +168,7 @@ namespace Com.Ena.Timesheet
 
         /// <summary>
         /// Validates timesheet entries against a template and returns a dictionary of invalid activities
-        /// along with their suggested best matches from the template.
+        /// (in the format "project#activity") along with their suggested best matches from the template.
         /// </summary>
         /// <returns>A dictionary where keys are invalid activities and values are the suggested best matches</returns>
         public Dictionary<string, string> Validate()

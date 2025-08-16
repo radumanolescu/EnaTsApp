@@ -2,11 +2,29 @@ using System;
 using System.IO;
 using System.Linq;
 using Com.Ena.Timesheet;
+using Com.Ena.Timesheet.Ena;
 using Microsoft.Extensions.Logging;
+using OfficeOpenXml;
 
 class Program
 {
     static void Main(string[] args)
+    {
+        ExcelPackage.License.SetNonCommercialPersonal("Elaine Newman");
+        TestActivityUpdateFlow(args);
+    }
+    
+    /// <summary>
+    /// Tests the activity update flow by validating a timesheet and displaying invalid activities.
+    /// Allows updating invalid activities in the Excel file with valid ones.
+    /// </summary>
+    /// <param name="args">Command line arguments in the format: [YYYYMM] [templatePath] [timesheetPath]</param>
+    /// <remarks>
+    /// If no arguments are provided, default paths will be used:
+    /// - Current date for YYYYMM
+    /// - Default template and timesheet paths
+    /// </remarks>
+    static void TestActivityUpdateFlow(string[] args)
     {
         Console.WriteLine("TimesheetProcessor Debug Helper");
         Console.WriteLine("=============================\n");
@@ -23,6 +41,9 @@ class Program
             Console.WriteLine($"- Template: {templatePath}");
             Console.WriteLine($"- Timesheet: {timesheetPath}\n");
 
+            List<List<string>> timesheetData = TimesheetProcessor.ParseExcelFile(timesheetPath);
+            var enaTimesheet = new EnaTimesheet(yyyyMM, timesheetData, timesheetPath, string.Empty);
+
             // Create and validate the processor
             Console.WriteLine("Creating TimesheetProcessor...");
             var processor = new TimesheetProcessor(yyyyMM, templatePath, timesheetPath);
@@ -38,17 +59,22 @@ class Program
                 {
                     Console.WriteLine($"- Invalid: {invalid}");
                     Console.WriteLine($"  Suggested: {suggested}");
+                    // Update the activity in the timesheet
+                    // Note: The UpdateActivity method expects the full project#activity string
+                    // If 'invalid' is just the activity part, we need to get the full string from the entry
+                    enaTimesheet.UpdateActivity(invalid, suggested);
                 }
 
                 // Show available client tasks
                 Console.WriteLine("\nAvailable client tasks:");
-                foreach (var task in processor.ClientTasks.Take(20)) // Show first 20 to avoid flooding
+                int maxShowTasks = 10;
+                foreach (var task in processor.ClientTasks.Take(maxShowTasks)) // Show first N to avoid flooding
                 {
                     Console.WriteLine($"- {task}");
                 }
-                if (processor.ClientTasks.Count > 20)
+                if (processor.ClientTasks.Count > maxShowTasks)
                 {
-                    Console.WriteLine($"... and {processor.ClientTasks.Count - 20} more");
+                    Console.WriteLine($"... and {processor.ClientTasks.Count - maxShowTasks} more");
                 }
             }
             else
