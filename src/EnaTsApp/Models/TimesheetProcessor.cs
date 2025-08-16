@@ -17,6 +17,7 @@ namespace Com.Ena.Timesheet
         private readonly string _timesheetPath;
         private readonly string _yyyyMM;
         private HashSet<string> clientTaskSet;
+        public List<string> ClientTasks => clientTaskSet?.ToList();
         private readonly ILogger<TimesheetProcessor> _logger;
 
         public TimesheetProcessor(string yyyyMM, string templatePath, string timesheetPath)

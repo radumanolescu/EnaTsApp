@@ -12,6 +12,7 @@ using Com.Ena.Timesheet;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using System.IO;
+using System.Collections.Generic;
 
 namespace EnaTsApp
 {
@@ -294,18 +295,40 @@ namespace EnaTsApp
                     ShowError("Please load a template and a timesheet first.");
                     return;
                 }
+                
                 string yyyyMM = selectedDate.ToString("yyyyMM");
                 string templatePath = fileLocations["template"];
                 string timesheetPath = fileLocations["timesheet"];
-                TimesheetProcessor processor = new TimesheetProcessor(yyyyMM, templatePath, timesheetPath);
-                var invalidActivities = processor.Validate();
-                var outputFile = processor.Process();
+                
+                // Create processor and validate
+                TimesheetProcessor processor;
+                Dictionary<string, string> invalidActivities;
+                do {
+                    processor = new TimesheetProcessor(yyyyMM, templatePath, timesheetPath);
+                    invalidActivities = processor.Validate();
+                    if (invalidActivities.Count > 0) {
+                        var random = new Random();
+                        var invalidActivity = invalidActivities.Keys.ElementAt(random.Next(invalidActivities.Count));
+                        var suggestedActivity = invalidActivities[invalidActivity];
+                        using (var form = new ActivitySelectionForm(invalidActivity, suggestedActivity, processor.ClientTasks))
+                        {
+                            if (form.ShowDialog() == DialogResult.OK && !string.IsNullOrEmpty(form.SelectedActivity))
+                            {
+                                // Update the timesheet with the selected activity
+                                var enaTimesheet = new EnaTimesheet(yyyyMM, timesheetData, timesheetPath, string.Empty);
+                                enaTimesheet.UpdateActivity(invalidActivity, form.SelectedActivity);
+                                processor = new TimesheetProcessor(yyyyMM, templatePath, timesheetPath);
+                            }
+                        }
+                    }
+                } while (invalidActivities.Count > 0);
 
+                // No invalid activities, process normally
+                var outputFile = processor.Process();
                 string message = $"See output file: {outputFile}\n";
                 message += $"Selected Date: {selectedDate.ToString("MMMM yyyy")}. ";
                 message += $"Template Data: {(templateData?.Count ?? 0)} rows. ";
                 message += $"Timesheet Data: {(timesheetData?.Count ?? 0)} rows. ";
-
                 ShowSuccess(message);
             }
             catch (Exception ex)
@@ -417,6 +440,111 @@ namespace EnaTsApp
                 errorLabel.Text = message;
                 errorLabel.ForeColor = Color.Green;
             }
+        }
+    }
+
+    public class ActivitySelectionForm : Form
+    {
+        private readonly ComboBox comboBoxActivities;
+        public string SelectedActivity { get; private set; }
+
+        public ActivitySelectionForm(string invalidActivity, string suggestedActivity, List<string> validActivities)
+        {
+            this.Text = "Invalid Activity Found";
+            this.Size = new Size(500, 200);
+            this.FormBorderStyle = FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+            this.StartPosition = FormStartPosition.CenterParent;
+
+            // Main panel for layout
+            var mainPanel = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 4,
+                Padding = new Padding(10)
+            };
+            mainPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            mainPanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            mainPanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            mainPanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            mainPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 50));
+
+            // Message label
+            var lblMessage = new Label
+            {
+                Text = $"Invalid activity: {invalidActivity}\nPlease select a valid activity:",
+                AutoSize = true,
+                Dock = DockStyle.Top,
+                Margin = new Padding(0, 0, 0, 10)
+            };
+
+            // Combo box for activity selection
+            comboBoxActivities = new ComboBox
+            {
+                Dock = DockStyle.Top,
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Margin = new Padding(0, 0, 0, 10)
+            };
+            
+            // Add valid activities to combo box
+            validActivities.Sort();
+            comboBoxActivities.Items.AddRange(validActivities.ToArray());
+            
+            // Set suggested activity as default selection
+            int suggestedIndex = validActivities.IndexOf(suggestedActivity);
+            comboBoxActivities.SelectedIndex = suggestedIndex >= 0 ? suggestedIndex : 0;
+
+            // Button panel
+            var buttonPanel = new FlowLayoutPanel
+            {
+                FlowDirection = FlowDirection.RightToLeft,
+                AutoSize = true,
+                Dock = DockStyle.Bottom,
+                Height = 40
+            };
+
+            // OK button
+            var btnOK = new Button
+            {
+                Text = "OK",
+                DialogResult = DialogResult.OK,
+                Width = 80
+            };
+            btnOK.Click += (s, e) => 
+            {
+                SelectedActivity = comboBoxActivities.SelectedItem?.ToString() ?? string.Empty;
+                this.DialogResult = DialogResult.OK;
+                this.Close();
+            };
+
+            // Cancel button
+            var btnCancel = new Button
+            {
+                Text = "Cancel",
+                DialogResult = DialogResult.Cancel,
+                Width = 80,
+                Margin = new Padding(0, 0, 10, 0)
+            };
+            btnCancel.Click += (s, e) => this.Close();
+
+            // Add controls to panels
+            buttonPanel.Controls.Add(btnOK);
+            buttonPanel.Controls.Add(btnCancel);
+
+            // Add controls to main panel
+            mainPanel.Controls.Add(lblMessage, 0, 0);
+            mainPanel.Controls.Add(comboBoxActivities, 0, 1);
+            mainPanel.Controls.Add(new Panel(), 0, 2); // Spacer
+            mainPanel.Controls.Add(buttonPanel, 0, 3);
+
+            // Add main panel to form
+            this.Controls.Add(mainPanel);
+
+            // Set accept and cancel buttons
+            this.AcceptButton = btnOK;
+            this.CancelButton = btnCancel;
         }
     }
 }

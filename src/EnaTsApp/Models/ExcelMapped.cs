@@ -16,10 +16,15 @@ namespace Com.Ena.Timesheet
             _inputPath = inputPath;
             _outputPath = outputPath;
 
-            // If either path is empty, return early without initialization
-            if (string.IsNullOrEmpty(inputPath) || string.IsNullOrEmpty(outputPath))
+            // If the input path is empty, return early without initialization
+            if (string.IsNullOrEmpty(inputPath))
             {
                 return;
+            }
+
+            if (string.IsNullOrEmpty(outputPath))
+            {
+                outputPath = inputPath;
             }
 
             // Validate paths
