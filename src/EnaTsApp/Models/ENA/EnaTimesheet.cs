@@ -27,7 +27,6 @@ namespace Com.Ena.Timesheet.Ena
         private readonly List<EnaTsProjectEntry> projectEntries = new List<EnaTsProjectEntry>();
         public IReadOnlyList<EnaTsProjectEntry> ProjectEntries => projectEntries;
 
-        private byte[]? xlsxBytes;
         private readonly ILogger<EnaTimesheet> _logger;
 
         private static readonly IServiceProvider _serviceProvider = new ServiceCollection()
@@ -100,9 +99,6 @@ namespace Com.Ena.Timesheet.Ena
             var entriesWithTotals = GetProjectEntries();
             return string.Join("\n", entriesWithTotals.Select(e => e.GetHtmlRow()));
         }
-
-        public byte[] GetXlsxBytes() => xlsxBytes;
-        public void SetXlsxBytes(byte[] bytes) => xlsxBytes = bytes;
 
         /// <summary>
         /// Updates the Excel file by writing validation error messages for each entry that has an error.
@@ -326,11 +322,6 @@ namespace Com.Ena.Timesheet.Ena
 
             string baseName = Path.GetFileNameWithoutExtension(filename);
             return $"{baseName}R{extension}";
-        }
-
-        public void WriteFile(FileInfo output)
-        {
-            File.WriteAllBytes(output.FullName, xlsxBytes);
         }
 
         // Helper method to read all bytes from a stream
