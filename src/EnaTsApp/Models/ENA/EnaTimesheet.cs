@@ -219,6 +219,10 @@ namespace Com.Ena.Timesheet.Ena
         {
             if (string.IsNullOrEmpty(invalidActivity) || string.IsNullOrEmpty(validActivity))
                 return;
+            if (_excelPackage == null || _excelPackage.Workbook.Worksheets.Count == 0)
+                return;
+
+            var worksheet = _excelPackage.Workbook.Worksheets[0];
 
             bool updated = false;
             foreach (var entry in enaTsEntries)
@@ -226,6 +230,8 @@ namespace Com.Ena.Timesheet.Ena
                 if (string.Equals(entry.Activity, invalidActivity, StringComparison.OrdinalIgnoreCase))
                 {
                     entry.Activity = validActivity;
+                    int row = entry.LineId + 1; // lineId is 0-based, Excel rows are 1-based
+                    worksheet.Cells[row, 1].Value = $"{entry.ProjectId}#{entry.Activity}";
                     updated = true;
                 }
             }
