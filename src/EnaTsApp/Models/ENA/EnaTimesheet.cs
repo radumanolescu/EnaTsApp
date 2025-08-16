@@ -209,6 +209,33 @@ namespace Com.Ena.Timesheet.Ena
             return projectEntries;
         }
 
+        /// <summary>
+        /// Updates the activity for all entries that match the invalid activity to the valid activity.
+        /// After updating, it saves the timesheet using SaveAs().
+        /// </summary>
+        /// <param name="invalidActivity">The activity to be replaced</param>
+        /// <param name="validActivity">The new activity to set</param>
+        public void UpdateActivity(string invalidActivity, string validActivity)
+        {
+            if (string.IsNullOrEmpty(invalidActivity) || string.IsNullOrEmpty(validActivity))
+                return;
+
+            bool updated = false;
+            foreach (var entry in enaTsEntries)
+            {
+                if (string.Equals(entry.Activity, invalidActivity, StringComparison.OrdinalIgnoreCase))
+                {
+                    entry.Activity = validActivity;
+                    updated = true;
+                }
+            }
+
+            if (updated)
+            {
+                SaveAs();
+            }
+        }
+
         public double TotalHours()
         {
             return enaTsEntries.Sum(e => e.Hours ?? 0.0f);
@@ -252,8 +279,8 @@ namespace Com.Ena.Timesheet.Ena
                     string err0 = entry.Error;
                     string suggested = BestMatch(entry.ProjectActivity(), clientTaskSet);
                     string err1 = $"Invalid project#activity. Did you mean '{suggested}'?";
-                    Console.WriteLine($"NotInClientTaskSet [{entry.LineId}] {entry.ProjectActivity()} -> {suggested}");
-                    Console.WriteLine(err0 + err1);
+                    _logger.LogInformation($"NotInClientTaskSet [{entry.LineId}] {entry.ProjectActivity()} -> {suggested}");
+                    _logger.LogInformation(err0 + err1);
                     entry.SetError(err0 + err1);
                 }
             }
