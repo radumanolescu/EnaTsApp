@@ -324,16 +324,6 @@ namespace Com.Ena.Timesheet.Ena
             return $"{baseName}R{extension}";
         }
 
-        // Helper method to read all bytes from a stream
-        private static byte[] GetBytes(Stream input)
-        {
-            using (var ms = new MemoryStream())
-            {
-                input.CopyTo(ms);
-                return ms.ToArray();
-            }
-        }
-
         // Helper class for weekly summary
         private class WeeklySummary
         {
