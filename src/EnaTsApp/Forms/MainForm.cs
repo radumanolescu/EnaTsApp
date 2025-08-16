@@ -298,6 +298,7 @@ namespace EnaTsApp
                 string templatePath = fileLocations["template"];
                 string timesheetPath = fileLocations["timesheet"];
                 TimesheetProcessor processor = new TimesheetProcessor(yyyyMM, templatePath, timesheetPath);
+                var invalidActivities = processor.Validate();
                 var outputFile = processor.Process();
 
                 string message = $"See output file: {outputFile}\n";

@@ -16,6 +16,7 @@ namespace Com.Ena.Timesheet
         private readonly string _templatePath;
         private readonly string _timesheetPath;
         private readonly string _yyyyMM;
+        private HashSet<string> clientTaskSet;
         private readonly ILogger<TimesheetProcessor> _logger;
 
         public TimesheetProcessor(string yyyyMM, string templatePath, string timesheetPath)
@@ -59,19 +60,19 @@ namespace Com.Ena.Timesheet
             {
                 _logger.LogInformation($"Starting timesheet processing for {_yyyyMM}");
                 
-                List<List<string>>? templateData;
-                List<List<string>>? timesheetData;
+                List<List<string>> templateData;
+                List<List<string>> timesheetData;
 
                 _logger.LogInformation("Parsing Excel files");
                 templateData = ParseExcelFile(_templatePath);
                 timesheetData = ParseExcelFile(_timesheetPath);
 
-                if (templateData == null || templateData.Count == 0 )
+                if (templateData.Count == 0 )
                 {
                     _logger.LogError("Failed to parse template file");
                     throw new Exception("Failed to parse template");
                 }
-                if (timesheetData == null || timesheetData.Count == 0)
+                if (timesheetData.Count == 0)
                 {
                     _logger.LogError("Failed to parse timesheet file");
                     throw new Exception("Failed to parse timesheet");
@@ -163,6 +164,49 @@ namespace Com.Ena.Timesheet
             }
         }
 
+
+        /// <summary>
+        /// Validates timesheet entries against a template and returns a dictionary of invalid activities
+        /// along with their suggested best matches from the template.
+        /// </summary>
+        /// <returns>A dictionary where keys are invalid activities and values are the suggested best matches</returns>
+        public Dictionary<string, string> Validate()
+        {
+            _logger.LogInformation("Validating timesheet entries against template");
+            var invalidActivities = new Dictionary<string, string>();
+            
+            // Parse the timesheet data
+            var timesheetData = ParseExcelFile(_timesheetPath);
+            if (timesheetData == null || timesheetData.Count == 0)
+            {
+                _logger.LogError("Failed to parse timesheet file for validation");
+                throw new Exception("Failed to parse timesheet for validation");
+            }
+
+            // Create a timesheet instance without saving it
+            var enaTimesheet = new EnaTimesheet(_yyyyMM, timesheetData, _timesheetPath, string.Empty);
+            List<List<string>> templateData = ParseExcelFile(_templatePath);
+            var phdTemplate = new PhdTemplate(_yyyyMM, templateData, _templatePath, GetTemplateOutputPath(_yyyyMM));
+            clientTaskSet = new HashSet<string>(phdTemplate.ClientTasks());
+
+            // Check each entry
+            foreach (var entry in enaTimesheet.GetEntries())
+            {
+                string projectActivity = entry.ProjectActivity();
+                if (!clientTaskSet.Contains(projectActivity))
+                {
+                    string suggested = EnaTimesheet.BestMatch(projectActivity, clientTaskSet);
+                    if (!string.IsNullOrEmpty(suggested) && !invalidActivities.ContainsKey(projectActivity))
+                    {
+                        invalidActivities[projectActivity] = suggested;
+                        _logger.LogWarning($"Found invalid activity: '{projectActivity}'. Suggested: '{suggested}'");
+                    }
+                }
+            }
+
+            _logger.LogInformation($"Validation complete. Found {invalidActivities.Count} invalid activities");
+            return invalidActivities;
+        }
     }
 }
 
