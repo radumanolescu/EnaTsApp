@@ -38,8 +38,8 @@ namespace Com.Ena.Timesheet.Tests.Helpers
             }
 
             // Arrange
-            var npoiParser = new ExcelParser();
-            var epplusParser = new ExcelParserOXML();
+            var npoiParser = new ExcelParserNPOI();
+            var epplusParser = new ExcelParser();
 
             // Act
             var npoiResult = npoiParser.ParseExcelFile(excelFilePath);

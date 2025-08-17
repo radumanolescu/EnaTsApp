@@ -9,12 +9,12 @@ namespace Com.Ena.Timesheet.Xl
     /// Parses Excel files using the EPPlus library.
     /// This implementation is functionally equivalent to ExcelParser but uses EPPlus instead of NPOI.
     /// </summary>
-    public class ExcelParserOXML
+    public class ExcelParser
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="ExcelParserOXML"/> class.
+        /// Initializes a new instance of the <see cref="ExcelParser"/> class.
         /// </summary>
-        public ExcelParserOXML()
+        public ExcelParser()
         {
             // Constructor is guaranteed to be called on every instantiation
             // Set the license context
@@ -52,15 +52,19 @@ namespace Com.Ena.Timesheet.Xl
                 var worksheet = package.Workbook.Worksheets[SHEET_INDEX];
                 var dimension = worksheet.Dimension;
                 
-                if (dimension == null || dimension.Rows == 0)
+                if (dimension == null)
                 {
-                    throw new InvalidOperationException("The Excel file appears to be empty.");
+                    throw new InvalidOperationException("The Excel file appears to be empty or corrupted.");
                 }
 
-                for (int row = 1; row <= dimension.Rows; row++)
+                // Get the actual used range
+                var start = dimension.Start;
+                var end = dimension.End;
+
+                for (int row = 1; row <= end.Row; row++)
                 {
                     var rowData = new List<string>();
-                    for (int col = 1; col <= dimension.Columns; col++)
+                    for (int col = start.Column; col <= end.Column; col++)
                     {
                         var cell = worksheet.Cells[row, col];
                         if (cell == null || cell.Value == null)

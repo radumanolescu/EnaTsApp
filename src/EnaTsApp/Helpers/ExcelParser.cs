@@ -5,7 +5,7 @@ using NPOI.SS.UserModel;
 
 namespace Com.Ena.Timesheet.Xl
 {
-    public class ExcelParser
+    public class ExcelParserNPOI
     {
         private const int SHEET_INDEX = 0;
 
