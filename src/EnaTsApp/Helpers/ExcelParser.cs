@@ -1,12 +1,25 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using NPOI.SS.UserModel;
+using OfficeOpenXml;
 
 namespace Com.Ena.Timesheet.Xl
 {
-    public class ExcelParserNPOI
+    /// <summary>
+    /// Parses Excel files using the EPPlus library.
+    /// This implementation is functionally equivalent to ExcelParser but uses EPPlus instead of NPOI.
+    /// </summary>
+    public class ExcelParser
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ExcelParser"/> class.
+        /// </summary>
+        public ExcelParser()
+        {
+            // Constructor is guaranteed to be called on every instantiation
+            // Set the license context
+            ExcelPackage.License.SetNonCommercialPersonal("Elaine Newman");
+        }
         private const int SHEET_INDEX = 0;
 
         /// <summary>
@@ -21,124 +34,75 @@ namespace Com.Ena.Timesheet.Xl
         /// <exception cref="System.InvalidOperationException">Thrown when no worksheets are found in the Excel file or the file appears to be empty.</exception>
         public List<List<string>> ParseExcelFile(string filePath)
         {
+            if (string.IsNullOrEmpty(filePath))
+                throw new ArgumentNullException(nameof(filePath));
+            if (!File.Exists(filePath))
+                throw new FileNotFoundException("The specified Excel file was not found.", filePath);
+
             var data = new List<List<string>>();
 
-            try
+            var fileInfo = new FileInfo(filePath);
+            using (var package = new ExcelPackage(fileInfo))
             {
-                using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                if (package.Workbook.Worksheets.Count == 0)
                 {
-                    var workbook = WorkbookFactory.Create(fs);
-                    var sheet = workbook.GetSheetAt(SHEET_INDEX);
-                    if (sheet == null)
-                    {
-                        throw new InvalidOperationException("No worksheets found in the Excel file.");
-                    }
+                    throw new InvalidOperationException("No worksheets found in the Excel file.");
+                }
 
-                    var rowCount = sheet.LastRowNum + 1;
-                    if (rowCount == 0)
-                    {
-                        throw new InvalidOperationException("The Excel file appears to be empty.");
-                    }
+                var worksheet = package.Workbook.Worksheets[SHEET_INDEX];
+                var dimension = worksheet.Dimension;
+                
+                if (dimension == null)
+                {
+                    throw new InvalidOperationException("The Excel file appears to be empty or corrupted.");
+                }
 
-                    for (int row = 0; row < rowCount; row++)
+                // Get the actual used range
+                var start = dimension.Start;
+                var end = dimension.End;
+
+                for (int row = 1; row <= end.Row; row++)
+                {
+                    var rowData = new List<string>();
+                    for (int col = start.Column; col <= end.Column; col++)
                     {
-                        var rowData = new List<string>();
-                        var excelRow = sheet.GetRow(row);
-                        if (excelRow != null)
+                        var cell = worksheet.Cells[row, col];
+                        if (cell == null || cell.Value == null)
                         {
-                            var colCount = excelRow.LastCellNum;
-                            for (int col = 0; col < colCount; col++)
-                            {
-                                var cell = excelRow.GetCell(col);
-                                if (cell == null)
-                                {
-                                    rowData.Add(string.Empty);
-                                }
-                                else
-                                {
-                                    switch (cell.CellType)
-                                    {
-                                        case CellType.String:
-                                            rowData.Add(cell.StringCellValue);
-                                            break;
-                                        case CellType.Numeric:
-                                            rowData.Add(cell.NumericCellValue.ToString());
-                                            break;
-                                        case CellType.Boolean:
-                                            rowData.Add(cell.BooleanCellValue.ToString());
-                                            break;
-                                        case CellType.Formula:
-                                            var evaluator = cell.Sheet.Workbook.GetCreationHelper().CreateFormulaEvaluator();
-                                            var cellValue = evaluator.Evaluate(cell);
-                                            string formulaResult;
-                                            switch (cellValue.CellType)
-                                            {
-                                                case CellType.String:
-                                                    formulaResult = cellValue.StringValue;
-                                                    break;
-                                                case CellType.Numeric:
-                                                    formulaResult = cellValue.NumberValue.ToString();
-                                                    break;
-                                                case CellType.Boolean:
-                                                    formulaResult = cellValue.BooleanValue.ToString();
-                                                    break;
-                                                default:
-                                                    formulaResult = string.Empty;
-                                                    break;
-                                            }
-                                            rowData.Add(formulaResult);
-                                            break;
-                                        default:
-                                            rowData.Add(string.Empty);
-                                            break;
-                                    }
-                                }
-                            }
+                            rowData.Add(string.Empty);
                         }
-                        data.Add(rowData);
-                    }
+                        else
+                        {
+                            // Handle different value types
+                            var value = cell.Value;
+                            string stringValue;
 
-                    return data;
+                            if (value is DateTime dateTimeValue)
+                            {
+                                stringValue = dateTimeValue.ToString("G");
+                            }
+                            else if (value is bool boolValue)
+                            {
+                                stringValue = boolValue.ToString().ToLower();
+                            }
+                            else if (value is double || value is float || value is decimal || value is int || value is long)
+                            {
+                                // Preserve numeric precision
+                                stringValue = Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture);
+                            }
+                            else
+                            {
+                                stringValue = value.ToString();
+                            }
+
+                            rowData.Add(stringValue);
+                        }
+                    }
+                    data.Add(rowData);
                 }
             }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error parsing Excel file: {ex.Message}", ex);
-            }
-        }
 
-        public Dictionary<int, List<string>> ReadWorkbook(Stream inputStream, int index)
-        {
-            IWorkbook workbook = WorkbookFactory.Create(inputStream);
-            return ReadWorkbook(workbook, index);
-        }
-
-        public Dictionary<int, List<string>> ReadWorkbook(IWorkbook workbook, int index)
-        {
-            return ReadWorksheet(workbook.GetSheetAt(index));
-        }
-
-        public Dictionary<int, List<string>> ReadWorksheet(ISheet sheet)
-        {
-            var data = new Dictionary<int, List<string>>();
-            int i = 0;
-            foreach (IRow row in sheet)
-            {
-                data[i] = StringValues(row);
-                i++;
-            }
             return data;
-        }
-
-        public List<string> StringValues(IRow row)
-        {
-            var cells = row.Cells;
-            var rowValues = new string[cells.Count];
-            for (int i = 0; i < cells.Count; i++)
-            {
-                rowValues[i] = cells[i].ToString();
-            }
-            return rowValues.ToList();
         }
     }
 }
