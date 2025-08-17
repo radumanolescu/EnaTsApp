@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using NPOI.SS.UserModel;
-using NPOI.XSSF.UserModel;
 using Com.Ena.Timesheet.Phd;
 using Com.Ena.Timesheet.Ena;
 using Com.Ena.Timesheet;
@@ -21,7 +19,6 @@ namespace Com.Ena.Timesheet.Phd
         private readonly ILogger<PhdTemplate> _logger;
         private List<PhdTemplateEntry> entries;
         private string yearMonth; // yyyyMM
-        private IWorkbook workbook;
         private ExcelWorksheet worksheet;
 
         private static readonly IServiceProvider _serviceProvider = new ServiceCollection()
@@ -62,7 +59,7 @@ namespace Com.Ena.Timesheet.Phd
             _logger.LogInformation($"Creating PhdTemplate for {yearMonth}");
             this.yearMonth = yearMonth;
             this.entries = entries;
-            workbook = WorkbookFactory.Create(inputPath);
+            // _excelPackage is initialized in the base class
             worksheet = _excelPackage.Workbook.Worksheets[0];
         }
 
