@@ -7,7 +7,6 @@ namespace Com.Ena.Timesheet.Xl
 {
     /// <summary>
     /// Parses Excel files using the EPPlus library.
-    /// This implementation is functionally equivalent to ExcelParser but uses EPPlus instead of NPOI.
     /// </summary>
     public class ExcelParser
     {
