@@ -1,13 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NPOI.SS.UserModel;
-using NPOI.XSSF.UserModel;
 using Com.Ena.Timesheet.Phd;
-using Com.Ena.Timesheet.Ena;
 using Com.Ena.Timesheet.Xl;
 using Ena.Timesheet.Util;
 
@@ -25,65 +18,6 @@ namespace Com.Ena.Timesheet.Phd
     /// </summary>
     public class Parser : ExcelParser
     {
-        public List<PhdTemplateEntry> ParseBytes(byte[] fileBytes, string yearMonth)
-        {
-            using (var bis = new MemoryStream(fileBytes))
-            {
-                return ParseEntries(bis, yearMonth);
-            }
-        }
-
-        public List<PhdTemplateEntry> ParseEntries(Stream inputStream, string yearMonth)
-        {
-            var entries = new List<PhdTemplateEntry>();
-            IWorkbook workbook = WorkbookFactory.Create(inputStream);
-            int index = 0; // first sheet
-            ISheet sheet = workbook.GetSheetAt(index);
-            int rowNum = 0;
-            foreach (IRow row in sheet)
-            {
-                try
-                {
-                    string client = row.GetCell(0)?.ToString()?.Trim() ?? "";
-                    if (client == "SUM")
-                        break;
-
-                    // Empty rows are meaningful and should not be skipped.
-                    // They mark the separation between groups of tasks.
-                    string task = row.GetCell(1)?.ToString()?.Trim() ?? "";
-
-                    // Read the effort per day from the row
-                    var effort = new Dictionary<int, double>();
-                    // Skip the first row (header)
-                    if (rowNum > 0)
-                    {
-                        // Each day is a column in the sheet, starting from column 2 (offset 1) and ending at column 32 (offset 31)
-                        int lastDayOfMonth = Time.GetLastDayOfMonth(yearMonth);
-                        for (int colId = PhdTemplate.dayColOffset + 1; colId <= PhdTemplate.dayColOffset + lastDayOfMonth; colId++)
-                        {
-                            ICell cell = row.GetCell(colId);
-                            if (cell != null && cell.CellType == CellType.Numeric)
-                            {
-                                double d = cell.NumericCellValue;
-                                effort[colId - PhdTemplate.dayColOffset] = d;
-                            }
-                        }
-                    }
-                    var entry = new PhdTemplateEntry(rowNum, client, task);
-                    entry.SetEffort(effort);
-                    entries.Add(entry);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"Error in row {rowNum + 1}: {e.Message}");
-                }
-                rowNum++;
-            }
-            SetProjectCodes(entries);
-            CheckDupClientTask(entries);
-            return entries;
-        }
-
         /// <summary>
         /// Once the project code is set for all entries, check that there are no duplicate client-task pairs.
         /// Such errors have been observed in the past, and they are likely to be caused by manual errors in the template.
