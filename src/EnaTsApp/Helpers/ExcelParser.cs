@@ -76,7 +76,18 @@ namespace Com.Ena.Timesheet.Xl
                             var value = cell.Value;
                             string stringValue;
 
-                            if (value is DateTime dateTimeValue)
+                            if (value is TimeSpan timeSpanValue)
+                            {
+                                // Handle TimeSpan values (time of day)
+                                stringValue = timeSpanValue.ToString("hh:mm");
+                            }
+                            else if (value is double doubleValue && cell.Style.Numberformat.Format.Contains("h"))
+                            {
+                                // Handle Excel time values (stored as double)
+                                var time = DateTime.FromOADate(doubleValue);
+                                stringValue = time.ToString("HH:mm");
+                            }
+                            else if (value is DateTime dateTimeValue)
                             {
                                 stringValue = dateTimeValue.ToString("G");
                             }
