@@ -33,8 +33,8 @@ class Program
         {
             // Get input paths from command line or use defaults
             string yyyyMM = args.Length > 0 ? args[0] : DateTime.Now.ToString("yyyyMM");
-            string templatePath = args.Length > 1 ? args[1] : @"C:\path\to\your\template.xlsx";
-            string timesheetPath = args.Length > 2 ? args[2] : @"C:\path\to\your\timesheet.xlsx";
+            string templatePath = args.Length > 1 ? args[1] : @"C:\Users\Radu\-\projects\C#\EnaTsUiV2\src\EnaTsApp.Tests\TestData\PHD Blank Timesheet April 2025.xlsx";
+            string timesheetPath = args.Length > 2 ? args[2] : @"C:\Users\Radu\-\projects\C#\EnaTsUiV2\src\EnaTsApp.Tests\TestData\ENA-TimesheetFragment.xlsx";
 
             Console.WriteLine($"Using parameters:");
             Console.WriteLine($"- Date (YYYYMM): {yyyyMM}");

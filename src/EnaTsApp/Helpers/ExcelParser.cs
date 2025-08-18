@@ -89,7 +89,15 @@ namespace Com.Ena.Timesheet.Xl
                             }
                             else if (value is DateTime dateTimeValue)
                             {
-                                stringValue = dateTimeValue.ToString("G");
+                                // if the date component is less than 1900-01-01, it is a time of day
+                                if (dateTimeValue.Date < new DateTime(1900, 1, 1))
+                                {
+                                    stringValue = dateTimeValue.ToString("HH:mm");
+                                }
+                                else
+                                {
+                                    stringValue = dateTimeValue.ToString("G");
+                                }
                             }
                             else if (value is bool boolValue)
                             {
